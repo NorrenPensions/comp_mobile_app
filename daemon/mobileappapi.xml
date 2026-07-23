@@ -1,0 +1,32 @@
+<service>
+	<id>mobileappapi.exe</id>
+	<name>Mobile App Api</name>
+	<description>The mobile application API.</description>
+	<executable>C:\Program Files\nodejs\node.exe</executable>
+	<argument>--harmony</argument>
+	<argument>--max_old_space_size=4096</argument>
+	<argument>F:\mobileapi\node_modules\node-windows\lib\wrapper.js</argument>
+	<argument>--file</argument>
+	<argument>F:\mobileapi\index.js</argument>
+	<argument>--scriptoptions=</argument>
+	<argument>--log</argument>
+	<argument>Mobile App Api wrapper</argument>
+	<argument>--grow</argument>
+	<argument>0.25</argument>
+	<argument>--wait</argument>
+	<argument>1</argument>
+	<argument>--maxrestarts</argument>
+	<argument>3</argument>
+	<argument>--abortonerror</argument>
+	<argument>n</argument>
+	<argument>--stopparentfirst</argument>
+	<argument>undefined</argument>
+	<logmode>rotate</logmode>
+	<stoptimeout>30sec</stoptimeout>
+	<serviceaccount>
+		<domain>FFPRO-SVR</domain>
+		<user>LocalSystem</user>
+		<password></password>
+	</serviceaccount>
+	<workingdirectory>F:\mobileapi</workingdirectory>
+</service>

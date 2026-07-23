@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- <link rel="stylesheet" href="style.css"> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statement</title>
+    <style>
+        body {
+            font-size: 7pt;
+            padding: 0;
+            font-family: tahoma;
+            font-weight: lighter;
+        }
+
+        .data-num {
+            text-align: end;
+        }
+
+        span {
+            font-weight: bold;
+        }
+
+        .bf {
+            border: 1px solid black;
+
+            font-size: 7.5pt;
+
+        }
+
+        .bf td {
+            padding-top: 3px;
+            padding-bottom: 3px;
+        }
+
+        .account-table {
+            font-weight: bold;
+            font-size: 7.5pt;
+
+        }
+
+        .account-table td {
+            padding-top: 3px;
+            padding-bottom: 3px;
+        }
+
+        .td-accounts td {
+            padding-top: 3px;
+            padding-bottom: 3px;
+        }
+    </style>
+</head>
+
+
+
+
+<body>
+
+
+    <div class="container">
+        <table style="width: 100%;">
+            <tr style="height:120px">
+                <td></td>
+                <td style=" text-align: center;">
+                    <img src="http://localhost:50/logo.png" width="300">
+                </td>
+                <td></td>
+            </tr>
+        </table>
+        <table style="width: 100%; border: 1px solid black; padding: 0;">
+            <tr style="height:25px">
+
+                <td
+                    style=" font-family:Tahoma; font-size: 10pt; background-color: #E94341; font-weight: 600; color: white;  text-align: center; width: 100%;">
+                    RSA Statement as at {{end}}</td>
+
+            </tr>
+        </table>
+        <br>
+        <table style="border: 1px solid black; width: 100%;">
+            <thead>
+                <td style="width: 32%; font-weight: 600; border-bottom:1px solid black ; padding: 3px;">
+                    {{name}}
+                </td>
+                <td
+                    style="width: 18%; font-weight: 600; border-bottom:1px solid black ; border-left:1px solid black ; padding: 3px; text-align: center;">
+                    VOLUATION SUMMARY</td>
+                <td
+                    style="width: 10%; font-weight: 600; border-bottom:1px solid black ; border-left:1px solid black ; padding: 3px; text-align: center;">
+                    RSA</td>
+                <td
+                    style="width: 10%; font-weight: 600; border-bottom:1px solid black ; border-left:1px solid black ; padding: 3px; text-align: center;">
+                    VC</td>
+                <td
+                    style="width: 10%; font-weight: 600; border-bottom:1px solid black ; border-left:1px solid black ; padding: 3px; text-align: center;">
+                    TOTAL</td>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td style="padding: 3px;">NO 22</td>
+                    <td style="   border-left:1px solid black ; padding: 3px; text-align: start;">
+                        CUMULATIVE UNITS
+                    </td>
+                    <!-- RSA -->
+                    <td style="  border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{unit}}</td>
+                    <!-- VC -->
+                    <td style="   border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{vunit}}</td>
+                    <!-- TOTAL -->
+                    <td style="  border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{tunit}}</td>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 3px;">OTUKPO STR OFF GIMBIYA <BR> ABUJA</td>
+                    <td style="   border-left:1px solid black ; padding: 3px; text-align: start;">
+                        UNIT PRICE
+                    </td>
+                    <!-- RSA -->
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{prices}}</td>
+                    <!-- VC -->
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{prices}}
+                    </td>
+                    <!-- TOTAL -->
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{prices}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 3px;">FEDERAL CAPITAL TERRITORY</td>
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: start;">
+                        CURRENT VALUE
+                    </td>
+                    <!-- RSA -->
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{balance}}</td>
+                    <!-- VC -->
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{vbalance}}
+                    </td>
+                    <!-- TOTAL -->
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{tbalance}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 3px;">
+                        <span>Phone:</span> {{phone}}<br>
+                        <span>PIN: {{rsapin}}</span>
+                    </td>
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: start;">
+                        NET Contribution
+                    </td>
+                    <!-- RSA -->
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{rnet}}</td>
+                    <!-- VC -->
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{voluntry}}
+                    </td>
+                    <!-- TOTAL -->
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{tnet}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 3px;"><span>Fund: {{fundType}}</span></td>
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: start;">
+                        GROWTH
+                    </td>
+                    <!-- RSA -->
+                    <td style=" border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{rGrowth}}</td>
+                    <!-- VC -->
+                    <td style="border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{vGrowth}}
+
+
+                    </td>
+                    <!-- TOTAL -->
+                    <td style="border-left:1px solid black ; padding: 3px; text-align: end;">
+                        {{tGrowth}}</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+
+        <table style="width: 100%; margin-top: 8px; margin-bottom: 8px;">
+            <tr>
+                <td style="width: 60%;"></td>
+                <td style="font-size: 7.5pt; font-weight: 600;">Statement Period:<br>
+                    {{start}} -
+                    {{end}}
+                </td>
+            </tr>
+        </table>
+        <table style="width: 100%; border: 1px solid black; padding: 0;">
+            <tr style="height:25px">
+
+                <td
+                    style=" font-family:Tahoma; padding-left:3px; font-size: 8pt; background-color: #E94341; font-weight: 600; color: white;  text-align: start; width: 100%;">
+                    Retirment Savings Account Details</td>
+
+            </tr>
+        </table>
+        <table style="width: 100%; border: 1px solid black; padding: 5px;">
+            <thead>
+                <tr class="account-table">
+                    <td>Value Date</td>
+                    <td>Description</td>
+                    <td class="data-num">Employee</td>
+                    <td class="data-num">Employer</td>
+                    <td class="data-num">Fees</td>
+                    <td class="data-num">VAT</td>
+                    <td class="data-num">Net Cont.</td>
+                    <td class="data-num">Withdrawal</td>
+                    <td class="data-num">Price</td>
+                    <td class="data-num">Units</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="bf">
+                    <td></td>
+                    <td>Balance B/F</td>
+                    <td class="data-num">{{employee}}</td>
+                    <td class="data-num">{{employer}}</td>
+                    <td class="data-num">{{fee}}</td>
+                    <td class="data-num">{{vat}}</td>
+                    <td class="data-num">{{tnet}}</td>
+                    <td class="data-num"></td>
+                    <td class="data-num"></td>
+                    <td class="data-num">{{unit}}</td>
+
+                </tr>
+                {{#each data}}
+                <tr class="td-accounts">
+                    <td>{{this.FUNDING_DATE}}</td>
+                    <td>{{this.NARRATION}}</td>
+                    <td class="data-num">{{this.EMPLOYEE_CONTRIBUTION}}</td>
+                    <td class="data-num">{{this.EMPLOYER_CONTRIBUTION}}</td>
+                    <td class="data-num">{{this.ADMIN_FEE}}</td>
+                    <td class="data-num">{{this.VAT_FEE}}</td>
+                    <td class="data-num">{{this.NET_CONTRIBUTION}}</td>
+                    <td class="data-num">{{this.WITHDRAWAL}}</td>
+                    <td class="data-num">{{this.PRICE}}</td>
+                    <td class="data-num">{{this.UNITS}}</td>
+                </tr>
+                {{/each}}
+
+                <tr class="bf">
+                    <td></td>
+                    <td> Closing Balance</td>
+                    <td class="data-num">{{employee}}</td>
+                    <td class="data-num">{{employer}}</td>
+                    <td class="data-num">{{fee}}</td>
+                    <td class="data-num">{{vat}}</td>
+                    <td class="data-num">{{tnet}}</td>
+                    <td class="data-num"></td>
+                    <td class="data-num"></td>
+                    <td class="data-num">{{unit}}</td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+        <table
+            style="border-top: 1px solid black; border-left: 1px solid black; border-right: 1px solid black; border-bottom: 0; width: 100%; margin-top: 15px;">
+            <tr>
+                <td style="padding:3px; font-weight: 600; font-size: 8pt;">Voluntry Contributions Acoounts Detailes</td>
+
+            </tr>
+        </table>
+
+        <table style="width: 100%; border: 1px solid black; padding: 8px; ">
+            <thead>
+
+                <tr class="account-table">
+                    <td>Value Date</td>
+                    <td>Description</td>
+                    <td>Employee</td>
+                    <td>Fees</td>
+                    <td>VAT</td>
+                    <td>Net Cont.</td>
+                    <td>Withdrawal</td>
+                    <td>Price</td>
+                    <td>Units</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="bf">
+                    <td></td>
+                    <td>Balance B/F</td>
+                    <td class="data-num">0.00</td>
+                    <td class="data-num">0.00</td>
+                    <td class="data-num">0.00</td>
+                    <td class="data-num">0.00</td>
+                    <td class="data-num">0.00</td>
+                    <td class="data-num"></td>
+                    <td class="data-num">0.00</td>
+
+                </tr>
+                {{#each vc}}
+                <tr class="td-accounts">
+                    <td>{{this.FUNDING_DATE}}</td>
+                    <td>{{this.NARRATION}}</td>
+                    <td class="data-num">{{this.VOLUNTARY_CONTRIBUTION}}</td>
+                    <td class="data-num">0.00</td>
+                    <td class="data-num">0.00</td>
+                    <td class="data-num">{{this.VOLUNTARY_CONTRIBUTION}}</td>
+                    <td class="data-num">{{this.WITHDRAWAL}}</td>
+                    <td class="data-num">{{this.PRICE}}</td>
+                    <td class="data-num">{{this.V_UNITS}}</td>
+                </tr>
+                {{/each}}
+                <tr class="bf">
+                    <td></td>
+                    <td> Closing Balance </td>
+                    <td class="data-num">0.00</td>
+                    <td class="data-num">0.00</td>
+                    <td class="data-num">0.00</td>
+                    <td class="data-num">0.00</td>
+                    <td class="data-num">0.00</td>
+                    <td class="data-num"></td>
+                    <td class="data-num">0.00</td>
+
+                </tr>
+
+
+            </tbody>
+        </table>
+        <table style="width: 100%; border: 1px solid black; padding: 0; margin-top: 15px;">
+            <tr style="height:25px">
+                <td
+                    style=" font-family:Tahoma; font-size: 8pt; font-style: italic; background-color: #E94341;  color: white;  text-align: center; width: 100%;">
+                    This is a computer generated statement and if issued without any alteration require no signature
+                </td>
+
+            </tr>
+        </table>
+        <br>
+        <span>Note:</span>
+        <table style="width: 100%; border: 1px solid black; padding: 0; margin-top: 5px;">
+            <table style="border: 1px solid black;; width: 100%; margin-top: 15px;">
+                <tr>
+                    <td style="padding:3px;  font-size: 7pt;">
+                        Norrenberger Pension Limited charges an Administration Fee of N100 monthly, deducted from
+                        your contribution. Investment Management Fees are also charged and included in the
+                        Unit Price of the Fund: Norrenberger Pensions (1.6% per annum); UBA Pensions Custodian
+                        (0.4% per annum); and National Pension Commission (0.25% per annum).\r\nThe Fees above
+                        are regulated by the National Pension Commission and are subject to change with notice
+                        from time to time; no other charges are made to your account.\r\nIf you would like to
+                        receive an e-Statement to your personal e-mail address or would like to update your
+                        mailing address, please call 09-7000800 or write to us at cservice@norrenberger.com
+                        stating the following details: Name, PIN, and Employer Name.<br><br>
+                        Corporate Office: <br>
+                        2B Okotie-Eboh Street, off Awolowo Road, Ikoyi, Lagos.<br>
+
+                        Tel: +234(0)8165722731 or +234(0)8078450652<br>
+                        Head Office: <br>
+                        No. 22 Otukpo Street, Off Gimbiya Street, Area 11, Garki, Abuja.<br>
+                        Tel:+234(0)9-7831663-4 / +234(0)8165722731 or +234(0)8078450652 or +234(0)7002200300<br>
+                        Email: cservice@norrenberger.com | www.pension.norrenberger.com | facebook:
+                        facebook.com/norrenbergerpensions | twitter: @NorrenPensions<br>
+                        Thank you.
+
+
+                    </td>
+
+                </tr>
+            </table>
+        </table>
+
+    </div>
+
+</body>
+
+</html>

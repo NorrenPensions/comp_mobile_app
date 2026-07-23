@@ -1,0 +1,40 @@
+{
+  "name": "mobileapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@sentry/node": "^8.31.0",
+    "@sentry/profiling-node": "^8.31.0",
+    "axios": "^1.13.4",
+    "bcrypt": "^5.0.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "currency-formatter": "^1.5.9",
+    "date-format": "^3.0.0",
+    "dateformat": "^5.0.3",
+    "dotenv": "^17.2.3",
+    "encrypt-decrpt-pdf": "^1.0.11",
+    "express": "^4.17.1",
+    "handlebars": "^4.7.8",
+    "mssql": "^7.2.1",
+    "mysql": "^2.18.1",
+    "node-windows": "^1.0.0-beta.6",
+    "nodemailer": "^6.7.2",
+    "puppeteer": "^24.17.0",
+    "webpack": "^5.65.0"
+  },
+  "devDependencies": {
+    "install": "^0.13.0",
+    "nodemon": "^2.0.13",
+    "npm": "^8.0.0"
+  }
+}
