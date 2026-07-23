@@ -54,32 +54,56 @@ app.use(users);
 app.use(docs);
 app.use(admin);
 
-// app.get("/debug-sentry", function mainHandler(req, res) {
-//   throw new Error("My first Sentry error!");
-// });
 
-app.get('/health', (_req, res) => {
+app.get("/health", (_req, res) => {
   res.status(200).json({
-    status: 'ok',
+    status: "ok",
     timestamp: new Date().toISOString(),
   });
 });
 
-// The error handler must be registered before any other error middleware and after all controllers
+// Register Sentry error handler after all routes
 Sentry.setupExpressErrorHandler(app);
 
-// Optional fallthrough error handler
-app.use(function onError(err, req, res, next) {
-  // The error id is attached to `res.sentry` to be returned
-  // and optionally displayed to the user for support.
-  res.statusCode = 500;
-  res.end(res.sentry + "\n");
+// Optional error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).send(res.sentry || "Internal Server Error");
 });
 
-// const port = process.env.PORT;
-const server = app.listen(7555, function () {
-  let host = server.address().address;
-  let port = server.address().port;
-  console.log("App listening on port", host, port);
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`App listening on port ${PORT}`);
 });
+
+
+// app.get("/debug-sentry", function mainHandler(req, res) {
+//   throw new Error("My first Sentry error!");
+// });
+
+// app.get('/health', (_req, res) => {
+//   res.status(200).json({
+//     status: 'ok',
+//     timestamp: new Date().toISOString(),
+//   });
+// });
+
+// // The error handler must be registered before any other error middleware and after all controllers
+// Sentry.setupExpressErrorHandler(app);
+
+// // Optional fallthrough error handler
+// app.use(function onError(err, req, res, next) {
+//   // The error id is attached to `res.sentry` to be returned
+//   // and optionally displayed to the user for support.
+//   res.statusCode = 500;
+//   res.end(res.sentry + "\n");
+// });
+
+// // const port = process.env.PORT;
+// const server = app.listen(5, function () {
+//   let host = server.address().address;
+//   let port = server.address().port;
+//   console.log("App listening on port", host, port);
+// });
 
