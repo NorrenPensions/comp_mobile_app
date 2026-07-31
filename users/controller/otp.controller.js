@@ -8,16 +8,16 @@ const formatPhoneNumber = require('../utility/formatPhoneNum');
 const normalizePin = require('../utility/normalizePin');
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.office365.com',
+    host: process.env.EMAIL_HOST,
     port: 587,
     auth: {
-        user: 'noreply-npl@norrenpensions.com',
-        pass: 'G3n3r@l.comm'
+        user: process.env.EMAIL_ADDRESS,
+        pass: process.env.EMAIL_PASS
     },
     tls: {
         rejectUnauthorized: false
     }
-});
+})
 
 const genOtp = async (req, res) => {
     try {

@@ -16,7 +16,7 @@ var price;
 //     const userDataDir = path.join(os.tmpdir(), 'puppeteer-profile');
 
 //     console.log("HTML size:", Buffer.byteLength(htmlContent, 'utf8'), "bytes");
-  
+
 //     let browser;
 //     try {
 //       browser = await puppeteer.launch({
@@ -31,23 +31,23 @@ var price;
 //         ],
 //         userDataDir
 //       });
-  
+
 //       const page = await browser.newPage();
-  
+
 //       // Set a reasonable timeout and wait for a key element instead of network idle
 //       await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
 //       await page.waitForSelector('body', { timeout: 5000 });
-  
+
 //       // Optional: small delay to ensure rendering is complete
 //       await new Promise(resolve => setTimeout(resolve, 300));
-  
+
 //       const pdfBuffer = await page.pdf({
 //         format: 'A4',
 //         landscape: false,
 //         margin: { top: '2mm', right: '2mm', bottom: '2mm', left: '2mm' },
 //         printBackground: true
 //       });
-  
+
 //       fs.writeFileSync(outputPath, pdfBuffer);
 //     } catch (error) {
 //       console.error('Error generating PDF:', error);
@@ -58,37 +58,37 @@ var price;
 // }
 
 async function generatePDF(htmlContent, outputPath) {
-  try {
-    const browser = await puppeteer.launch({
-      executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-      headless: false,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage"
-      ]
-    });
+    try {
+        const browser = await puppeteer.launch({
+            executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+            headless: false,
+            args: [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage"
+            ]
+        });
 
-    const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: "domcontentloaded" });
-    await page.waitForNetworkIdle({ idleTime: 500 });
+        const page = await browser.newPage();
+        await page.setContent(htmlContent, { waitUntil: "domcontentloaded" });
+        await page.waitForNetworkIdle({ idleTime: 500 });
 
-    // Capture PDF in memory
-    const pdfBuffer = await page.pdf({
-      format: "A4",
-      landscape: false,
-      margin: { top: "2mm", right: "2mm", bottom: "2mm", left: "2mm" },
-      printBackground: true
-    });
+        // Capture PDF in memory
+        const pdfBuffer = await page.pdf({
+            format: "A4",
+            landscape: false,
+            margin: { top: "2mm", right: "2mm", bottom: "2mm", left: "2mm" },
+            printBackground: true
+        });
 
-    fs.writeFileSync(outputPath, pdfBuffer);
+        fs.writeFileSync(outputPath, pdfBuffer);
 
-    await page.close();
-    await browser.close();
-  } catch (error) {
-    console.error("Error generating PDF:", error);
-    throw error;
-  }
+        await page.close();
+        await browser.close();
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+        throw error;
+    }
 }
 
 // async function generatePDF(htmlContent, outputPath) {
@@ -99,10 +99,10 @@ async function generatePDF(htmlContent, outputPath) {
 //             args: ['--no-sandbox', '--disable-setuid-sandbox'],
 //             userDataDir: 'C:\\Temp\\puppeteer-profile'
 //         });
-    
+
 //         const page = await browser.newPage();
 //         await page.setContent(htmlContent, { waitUntil: 'load' });
-    
+
 //         await page.pdf({
 //             path: outputPath,
 //             format: "A4",
@@ -110,7 +110,7 @@ async function generatePDF(htmlContent, outputPath) {
 //             margin: { top: "2mm", right: "2mm", bottom: "2mm", left: "2mm" },
 //             printBackground: true,
 //         });
-    
+
 //         await browser.close();
 //     } catch (error) {
 //         console.error("Error generating PDF:", error);
@@ -139,11 +139,11 @@ async function generatePDF(htmlContent, outputPath) {
 // }
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.office365.com',
+    host: process.env.EMAIL_HOST,
     port: 587,
     auth: {
-        user: 'noreply-npl@norrenpensions.com',
-        pass: 'G3n3r@l.comm'
+        user: process.env.EMAIL_ADDRESS,
+        pass: process.env.EMAIL_PASS
     },
     tls: {
         rejectUnauthorized: false
@@ -450,8 +450,8 @@ const sendStatement = async (req, res) => {
                     var vGrowth = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_GROWTH'], { code: '' })
                     var tGrowth = currencyFormatter.format(results.recordsets[0][0]['TOTAL_GROWTH'], { code: '' })
                     var rGrowth = currencyFormatter.format(results.recordsets[0][0]['RSA_GROWTH'], { code: '' })
-                    var vat = currencyFormatter.format(narates.recordsets[0][0]['VAT_FEE'], { code: '' })
-                    var fee = currencyFormatter.format(narates.recordsets[0][0]['ADMIN_FEE'] ?? 0, { code: '' })
+                    var vat = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['VAT_FEE'] ?? 0, { code: '' })
+                    var fee = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['ADMIN_FEE'] ?? 0, { code: '' })
                     var balance = currencyFormatter.format(results.recordsets[0][0]['RSA_BALANCE'], { code: '' })
                     var vbalance = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_BALANCE'], { code: '' })
                     var tbalance = currencyFormatter.format(results.recordsets[0][0]['TOTAL_BALANCE'], { code: '' })
@@ -528,7 +528,13 @@ const sendStatement = async (req, res) => {
                             console.log(err);
                             Sentry.captureException(err);
                         }
-                        fs.unlinkSync(pdfPath); // Delete PDF after sending email
+                        if (fs.existsSync(pdfPath)) {
+                            try {
+                                fs.unlinkSync(pdfPath); // Delete PDF after sending email
+                            } catch (e) {
+                                console.error("Error deleting PDF file:", e);
+                            }
+                        }
                     });
 
                     return res.json({ code: 200, data: results.recordsets[0] });
@@ -807,7 +813,7 @@ const sendStatement = async (req, res) => {
                     var rGrowth = currencyFormatter.format(results.recordsets[0][0]['RSA_GROWTH'], { code: '' })
                     var rawVat = Number(narates?.recordsets?.[0]?.[0]?.VAT_FEE || 0);
                     var vat = currencyFormatter.format(rawVat, { code: '' });
-                    var fee = currencyFormatter.format(narates.recordsets[0][0]['ADMIN_FEE'] ?? 0, { code: '' });
+                    var fee = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['ADMIN_FEE'] ?? 0, { code: '' });
                     var balance = currencyFormatter.format(results.recordsets[0][0]['RSA_BALANCE'], { code: '' })
                     var vbalance = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_BALANCE'], { code: '' })
                     var tbalance = currencyFormatter.format(results.recordsets[0][0]['TOTAL_BALANCE'], { code: '' })
@@ -883,7 +889,13 @@ const sendStatement = async (req, res) => {
                             console.log(err);
                             Sentry.captureException(err);
                         }
-                        fs.unlinkSync(pdfPath); // Delete PDF after sending email
+                        if (fs.existsSync(pdfPath)) {
+                            try {
+                                fs.unlinkSync(pdfPath); // Delete PDF after sending email
+                            } catch (e) {
+                                console.error("Error deleting PDF file:", e);
+                            }
+                        }
                     });
 
                     return res.json({ code: 200, data: results.recordsets[0] });
@@ -1158,8 +1170,8 @@ const sendStatement = async (req, res) => {
                     var vGrowth = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_GROWTH'], { code: '' })
                     var tGrowth = currencyFormatter.format(results.recordsets[0][0]['TOTAL_GROWTH'], { code: '' })
                     var rGrowth = currencyFormatter.format(results.recordsets[0][0]['RSA_GROWTH'], { code: '' })
-                    var vat = currencyFormatter.format(narates.recordsets[0][0]['VAT_FEE'], { code: '' })
-                    var fee = currencyFormatter.format(narates.recordsets[0][0]['ADMIN_FEE'] ?? 0, { code: '' })
+                    var vat = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['VAT_FEE'] ?? 0, { code: '' })
+                    var fee = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['ADMIN_FEE'] ?? 0, { code: '' })
                     var balance = currencyFormatter.format(results.recordsets[0][0]['RSA_BALANCE'], { code: '' })
                     var vbalance = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_BALANCE'], { code: '' })
                     var tbalance = currencyFormatter.format(results.recordsets[0][0]['TOTAL_BALANCE'], { code: '' })
@@ -1236,7 +1248,13 @@ const sendStatement = async (req, res) => {
                             console.log(err);
                             Sentry.captureException(err);
                         }
-                        fs.unlinkSync(pdfPath); // Delete PDF after sending email
+                        if (fs.existsSync(pdfPath)) {
+                            try {
+                                fs.unlinkSync(pdfPath); // Delete PDF after sending email
+                            } catch (e) {
+                                console.error("Error deleting PDF file:", e);
+                            }
+                        }
                     });
 
                     return res.json({ code: 200, data: results.recordsets[0] });
@@ -1515,8 +1533,8 @@ const sendStatement = async (req, res) => {
                     var vGrowth = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_GROWTH'], { code: '' })
                     var tGrowth = currencyFormatter.format(results.recordsets[0][0]['TOTAL_GROWTH'], { code: '' })
                     var rGrowth = currencyFormatter.format(results.recordsets[0][0]['RSA_GROWTH'], { code: '' })
-                    var vat = currencyFormatter.format(narates.recordsets[0][0]['VAT_FEE'], { code: '' })
-                    var fee = currencyFormatter.format(narates.recordsets[0][0]['ADMIN_FEE'] ?? 0, { code: '' })
+                    var vat = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['VAT_FEE'] ?? 0, { code: '' })
+                    var fee = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['ADMIN_FEE'] ?? 0, { code: '' })
                     var balance = currencyFormatter.format(results.recordsets[0][0]['RSA_BALANCE'], { code: '' })
                     var vbalance = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_BALANCE'], { code: '' })
                     var tbalance = currencyFormatter.format(results.recordsets[0][0]['TOTAL_BALANCE'], { code: '' })
@@ -1593,7 +1611,13 @@ const sendStatement = async (req, res) => {
                             console.log(err);
                             Sentry.captureException(err);
                         }
-                        fs.unlinkSync(pdfPath); // Delete PDF after sending email
+                        if (fs.existsSync(pdfPath)) {
+                            try {
+                                fs.unlinkSync(pdfPath); // Delete PDF after sending email
+                            } catch (e) {
+                                console.error("Error deleting PDF file:", e);
+                            }
+                        }
                     });
 
                     return res.json({ code: 200, data: results.recordsets[0] });
@@ -1869,8 +1893,8 @@ const sendStatement = async (req, res) => {
                     var vGrowth = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_GROWTH'], { code: '' })
                     var tGrowth = currencyFormatter.format(results.recordsets[0][0]['TOTAL_GROWTH'], { code: '' })
                     var rGrowth = currencyFormatter.format(results.recordsets[0][0]['RSA_GROWTH'], { code: '' })
-                    var vat = currencyFormatter.format(narates.recordsets[0][0]['VAT_FEE'], { code: '' })
-                    var fee = currencyFormatter.format(narates.recordsets[0][0]['ADMIN_FEE'] ?? 0, { code: '' })
+                    var vat = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['VAT_FEE'] ?? 0, { code: '' })
+                    var fee = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['ADMIN_FEE'] ?? 0, { code: '' })
                     var balance = currencyFormatter.format(results.recordsets[0][0]['RSA_BALANCE'], { code: '' })
                     var vbalance = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_BALANCE'], { code: '' })
                     var tbalance = currencyFormatter.format(results.recordsets[0][0]['TOTAL_BALANCE'], { code: '' })
@@ -1947,7 +1971,13 @@ const sendStatement = async (req, res) => {
                             console.log(err);
                             Sentry.captureException(err);
                         }
-                        fs.unlinkSync(pdfPath); // Delete PDF after sending email
+                        if (fs.existsSync(pdfPath)) {
+                            try {
+                                fs.unlinkSync(pdfPath); // Delete PDF after sending email
+                            } catch (e) {
+                                console.error("Error deleting PDF file:", e);
+                            }
+                        }
                     });
 
                     return res.json({ code: 200, data: results.recordsets[0] });
@@ -2225,8 +2255,8 @@ const sendStatement = async (req, res) => {
                     var vGrowth = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_GROWTH'], { code: '' })
                     var tGrowth = currencyFormatter.format(results.recordsets[0][0]['TOTAL_GROWTH'], { code: '' })
                     var rGrowth = currencyFormatter.format(results.recordsets[0][0]['RSA_GROWTH'], { code: '' })
-                    var vat = currencyFormatter.format(narates.recordsets[0][0]['VAT_FEE'], { code: '' })
-                    var fee = currencyFormatter.format(narates.recordsets[0][0]['ADMIN_FEE'] ?? 0, { code: '' })
+                    var vat = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['VAT_FEE'] ?? 0, { code: '' })
+                    var fee = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['ADMIN_FEE'] ?? 0, { code: '' })
                     var balance = currencyFormatter.format(results.recordsets[0][0]['RSA_BALANCE'], { code: '' })
                     var vbalance = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_BALANCE'], { code: '' })
                     var tbalance = currencyFormatter.format(results.recordsets[0][0]['TOTAL_BALANCE'], { code: '' })
@@ -2303,7 +2333,13 @@ const sendStatement = async (req, res) => {
                             console.log(err);
                             Sentry.captureException(err);
                         }
-                        fs.unlinkSync(pdfPath); // Delete PDF after sending email
+                        if (fs.existsSync(pdfPath)) {
+                            try {
+                                fs.unlinkSync(pdfPath); // Delete PDF after sending email
+                            } catch (e) {
+                                console.error("Error deleting PDF file:", e);
+                            }
+                        }
                     });
 
                     return res.json({ code: 200, data: results.recordsets[0] });

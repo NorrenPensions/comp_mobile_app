@@ -12,15 +12,15 @@ var price;
 var senderName = 'Norrenberger Pensions';
 
 const transporter = nodemailer.createTransport({
-	host: 'smtp.office365.com',
-	port: 587,
-	auth: {
-		user: 'noreply-npl@norrenpensions.com',
-		pass: 'G3n3r@l.comm' 
-	},
-	tls: {
-		rejectUnauthorized: false
-	}
+    host: process.env.EMAIL_HOST,
+    port: 587,
+    auth: {
+        user: process.env.EMAIL_ADDRESS,
+        pass: process.env.EMAIL_PASS
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
 })
 
 const sendStatement = async (req, res) => {
@@ -96,8 +96,6 @@ const sendStatement = async (req, res) => {
 
 
                 if (fundCode.recordset.length == 0) {
-
-
 
                     const fundCode2 = await pool.request()
 
@@ -353,8 +351,8 @@ const sendStatement = async (req, res) => {
                     var vGrowth = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_GROWTH'], { code: '' })
                     var tGrowth = currencyFormatter.format(results.recordsets[0][0]['TOTAL_GROWTH'], { code: '' })
                     var rGrowth = currencyFormatter.format(results.recordsets[0][0]['RSA_GROWTH'], { code: '' })
-                    var vat = currencyFormatter.format(narates.recordsets[0][0]['VAT_FEE'], { code: '' })
-                    var fee = currencyFormatter.format(narates.recordsets[0][0]['ADMIN_FEE'], { code: '' })
+                    var vat = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['VAT_FEE'] ?? 0, { code: '' })
+                    var fee = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['ADMIN_FEE'] ?? 0, { code: '' })
                     var balance = currencyFormatter.format(results.recordsets[0][0]['RSA_BALANCE'], { code: '' })
                     var vbalance = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_BALANCE'], { code: '' })
                     var tbalance = currencyFormatter.format(results.recordsets[0][0]['TOTAL_BALANCE'], { code: '' })
@@ -444,16 +442,16 @@ const sendStatement = async (req, res) => {
                             }
 
                             transporter.sendMail(option, function (err, info) {
+                                var filePath = `./statements/${pin}_statement.pdf`;
                                 if (err) {
                                     Sentry.captureException(err)
-                                    var filePath = `./statements/${pin}_statement.pdf`;
-                                    fs.unlinkSync(filePath);
-                                    return
                                 }
-                                else {
-                                    var filePath = `./statements/${pin}_statement.pdf`;
-                                    fs.unlinkSync(filePath);
-
+                                if (fs.existsSync(filePath)) {
+                                    try {
+                                        fs.unlinkSync(filePath);
+                                    } catch (e) {
+                                        console.error("Error deleting PDF file:", e);
+                                    }
                                 }
                             })
 
@@ -759,8 +757,8 @@ const sendStatement = async (req, res) => {
                     var vGrowth = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_GROWTH'], { code: '' })
                     var tGrowth = currencyFormatter.format(results.recordsets[0][0]['TOTAL_GROWTH'], { code: '' })
                     var rGrowth = currencyFormatter.format(results.recordsets[0][0]['RSA_GROWTH'], { code: '' })
-                    var vat = currencyFormatter.format(narates.recordsets[0][0]['VAT_FEE'], { code: '' })
-                    var fee = currencyFormatter.format(narates.recordsets[0][0]['ADMIN_FEE'], { code: '' })
+                    var vat = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['VAT_FEE'] ?? 0, { code: '' })
+                    var fee = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['ADMIN_FEE'] ?? 0, { code: '' })
                     var balance = currencyFormatter.format(results.recordsets[0][0]['RSA_BALANCE'], { code: '' })
                     var vbalance = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_BALANCE'], { code: '' })
                     var tbalance = currencyFormatter.format(results.recordsets[0][0]['TOTAL_BALANCE'], { code: '' })
@@ -851,16 +849,16 @@ const sendStatement = async (req, res) => {
 
 
                             transporter.sendMail(option, function (err, info) {
+                                var filePath = `./statements/${pin}_statement.pdf`;
                                 if (err) {
                                     Sentry.captureException(err)
-                                    var filePath = `./statements/${pin}_statement.pdf`;
-                                    fs.unlinkSync(filePath);
-                                    return
                                 }
-                                else {
-                                    var filePath = `./statements/${pin}_statement.pdf`;
-                                    fs.unlinkSync(filePath);
-
+                                if (fs.existsSync(filePath)) {
+                                    try {
+                                        fs.unlinkSync(filePath);
+                                    } catch (e) {
+                                        console.error("Error deleting PDF file:", e);
+                                    }
                                 }
                             })
 
@@ -1166,8 +1164,8 @@ const sendStatement = async (req, res) => {
                     var vGrowth = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_GROWTH'], { code: '' })
                     var tGrowth = currencyFormatter.format(results.recordsets[0][0]['TOTAL_GROWTH'], { code: '' })
                     var rGrowth = currencyFormatter.format(results.recordsets[0][0]['RSA_GROWTH'], { code: '' })
-                    var vat = currencyFormatter.format(narates.recordsets[0][0]['VAT_FEE'], { code: '' })
-                    var fee = currencyFormatter.format(narates.recordsets[0][0]['ADMIN_FEE'], { code: '' })
+                    var vat = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['VAT_FEE'] ?? 0, { code: '' })
+                    var fee = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['ADMIN_FEE'] ?? 0, { code: '' })
                     var balance = currencyFormatter.format(results.recordsets[0][0]['RSA_BALANCE'], { code: '' })
                     var vbalance = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_BALANCE'], { code: '' })
                     var tbalance = currencyFormatter.format(results.recordsets[0][0]['TOTAL_BALANCE'], { code: '' })
@@ -1267,16 +1265,16 @@ const sendStatement = async (req, res) => {
                             }
 
                             transporter.sendMail(option, function (err, info) {
+                                var filePath = `./statements/${pin}_statement.pdf`;
                                 if (err) {
                                     Sentry.captureException(err)
-                                    var filePath = `./statements/${pin}_statement.pdf`;
-                                    fs.unlinkSync(filePath);
-                                    return
                                 }
-                                else {
-                                    var filePath = `./statements/${pin}_statement.pdf`;
-                                    fs.unlinkSync(filePath);
-
+                                if (fs.existsSync(filePath)) {
+                                    try {
+                                        fs.unlinkSync(filePath);
+                                    } catch (e) {
+                                        console.error("Error deleting PDF file:", e);
+                                    }
                                 }
                             })
 
@@ -1585,8 +1583,8 @@ const sendStatement = async (req, res) => {
                     var vGrowth = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_GROWTH'], { code: '' })
                     var tGrowth = currencyFormatter.format(results.recordsets[0][0]['TOTAL_GROWTH'], { code: '' })
                     var rGrowth = currencyFormatter.format(results.recordsets[0][0]['RSA_GROWTH'], { code: '' })
-                    var vat = currencyFormatter.format(narates.recordsets[0][0]['VAT_FEE'], { code: '' })
-                    var fee = currencyFormatter.format(narates.recordsets[0][0]['ADMIN_FEE'], { code: '' })
+                    var vat = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['VAT_FEE'] ?? 0, { code: '' })
+                    var fee = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['ADMIN_FEE'] ?? 0, { code: '' })
                     var balance = currencyFormatter.format(results.recordsets[0][0]['RSA_BALANCE'], { code: '' })
                     var vbalance = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_BALANCE'], { code: '' })
                     var tbalance = currencyFormatter.format(results.recordsets[0][0]['TOTAL_BALANCE'], { code: '' })
@@ -1685,16 +1683,16 @@ const sendStatement = async (req, res) => {
                             }
 
                             transporter.sendMail(option, function (err, info) {
+                                var filePath = `./statements/${pin}_statement.pdf`;
                                 if (err) {
                                     Sentry.captureException(err)
-                                    var filePath = `./statements/${pin}_statement.pdf`;
-                                    fs.unlinkSync(filePath);
-                                    return
                                 }
-                                else {
-                                    var filePath = `./statements/${pin}_statement.pdf`;
-                                    fs.unlinkSync(filePath);
-
+                                if (fs.existsSync(filePath)) {
+                                    try {
+                                        fs.unlinkSync(filePath);
+                                    } catch (e) {
+                                        console.error("Error deleting PDF file:", e);
+                                    }
                                 }
                             })
                         })
@@ -1993,8 +1991,8 @@ const sendStatement = async (req, res) => {
                     var vGrowth = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_GROWTH'], { code: '' })
                     var tGrowth = currencyFormatter.format(results.recordsets[0][0]['TOTAL_GROWTH'], { code: '' })
                     var rGrowth = currencyFormatter.format(results.recordsets[0][0]['RSA_GROWTH'], { code: '' })
-                    var vat = currencyFormatter.format(narates.recordsets[0][0]['VAT_FEE'], { code: '' })
-                    var fee = currencyFormatter.format(narates.recordsets[0][0]['ADMIN_FEE'], { code: '' })
+                    var vat = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['VAT_FEE'] ?? 0, { code: '' })
+                    var fee = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['ADMIN_FEE'] ?? 0, { code: '' })
                     var balance = currencyFormatter.format(results.recordsets[0][0]['RSA_BALANCE'], { code: '' })
                     var vbalance = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_BALANCE'], { code: '' })
                     var tbalance = currencyFormatter.format(results.recordsets[0][0]['TOTAL_BALANCE'], { code: '' })
@@ -2098,16 +2096,16 @@ const sendStatement = async (req, res) => {
 
 
                             transporter.sendMail(option, function (err, info) {
+                                var filePath = `./statements/${pin}_statement.pdf`;
                                 if (err) {
                                     Sentry.captureException(err)
-                                    var filePath = `./statements/${pin}_statement.pdf`;
-                                    fs.unlinkSync(filePath);
-                                    return
                                 }
-                                else {
-                                    var filePath = `./statements/${pin}_statement.pdf`;
-                                    fs.unlinkSync(filePath);
-
+                                if (fs.existsSync(filePath)) {
+                                    try {
+                                        fs.unlinkSync(filePath);
+                                    } catch (e) {
+                                        console.error("Error deleting PDF file:", e);
+                                    }
                                 }
                             })
 
@@ -2410,8 +2408,8 @@ const sendStatement = async (req, res) => {
                     var vGrowth = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_GROWTH'], { code: '' })
                     var tGrowth = currencyFormatter.format(results.recordsets[0][0]['TOTAL_GROWTH'], { code: '' })
                     var rGrowth = currencyFormatter.format(results.recordsets[0][0]['RSA_GROWTH'], { code: '' })
-                    var vat = currencyFormatter.format(narates.recordsets[0][0]['VAT_FEE'], { code: '' })
-                    var fee = currencyFormatter.format(narates.recordsets[0][0]['ADMIN_FEE'], { code: '' })
+                    var vat = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['VAT_FEE'] ?? 0, { code: '' })
+                    var fee = currencyFormatter.format(narates?.recordsets?.[0]?.[0]?.['ADMIN_FEE'] ?? 0, { code: '' })
                     var balance = currencyFormatter.format(results.recordsets[0][0]['RSA_BALANCE'], { code: '' })
                     var vbalance = currencyFormatter.format(results.recordsets[0][0]['VOLUNTARY_BALANCE'], { code: '' })
                     var tbalance = currencyFormatter.format(results.recordsets[0][0]['TOTAL_BALANCE'], { code: '' })
@@ -2501,16 +2499,16 @@ const sendStatement = async (req, res) => {
                             }
 
                             transporter.sendMail(option, function (err, info) {
+                                var filePath = `./statements/${pin}_statement.pdf`;
                                 if (err) {
                                     Sentry.captureException(err)
-                                    var filePath = `./statements/${pin}_statement.pdf`;
-                                    fs.unlinkSync(filePath);
-                                    return
                                 }
-                                else {
-                                    var filePath = `./statements/${pin}_statement.pdf`;
-                                    fs.unlinkSync(filePath);
-
+                                if (fs.existsSync(filePath)) {
+                                    try {
+                                        fs.unlinkSync(filePath);
+                                    } catch (e) {
+                                        console.error("Error deleting PDF file:", e);
+                                    }
                                 }
                             })
 

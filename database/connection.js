@@ -4,9 +4,9 @@ const mysql = require('mysql')
 
 const dbsetttings = {
     // Live settings  - IEIANCHORDB
-    user: "dev03",
-    password: "@Lacool22",
-    server: "IEIANCHORDB",
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    server: process.env.DB_SERVER,
     options: {
         trustedconnection: true,
         useUTC: false,

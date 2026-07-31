@@ -8,11 +8,11 @@ const normalizePin = require('../users/utility/normalizePin');
 
 
 const transporter = nodemailer.createTransport({
-	host: 'smtp.office365.com',
+	host: process.env.EMAIL_HOST,
 	port: 587,
 	auth: {
-		user: 'noreply-npl@norrenpensions.com',
-		pass: 'G3n3r@l.comm'   
+		user: process.env.EMAIL_ADDRESS,
+		pass: process.env.EMAIL_PASS
 	},
 	tls: {
 		rejectUnauthorized: false
@@ -30,7 +30,7 @@ const genOtp = async (req, res) => {
 		const msg = `Your One Time Password (OTP) for Norrenberger Mobile Login is :${otp} `
 		const { phone } = req.body;
 		const npin = req.body.pin;
-        const pin = normalizePin(npin);
+		const pin = normalizePin(npin);
 		const createDate = dateFormate.asString('yyyy-mm-dd hh:mm:ss.SSS', new Date());
 
 
@@ -109,7 +109,7 @@ const genOtp = async (req, res) => {
 const verifyOtp = async (req, res) => {
 	const { otp } = req.body;
 	const npin = req.body.pin;
-    const pin = normalizePin(npin);
+	const pin = normalizePin(npin);
 	const pool = await getConnection();
 	try {
 		const upDate = dateFormate.asString('yyyy-mm-dd hh:mm:ss.SSS', new Date());
@@ -149,7 +149,7 @@ const genUnlockOtp = async (req, res) => {
 	try {
 		const { phone, model, brand } = req.body;
 		const npin = req.body.pin;
-        const pin = normalizePin(npin);
+		const pin = normalizePin(npin);
 		const min = 200000
 		const max = 900000
 		const otp = Math.floor(Math.random() * (max - min) + min)
@@ -247,7 +247,7 @@ const verifyOtpUnlock = async (req, res) => {
 	const { otp, device, platform } = req.body;
 
 	const npin = req.body.pin;
-    const pin = normalizePin(npin);
+	const pin = normalizePin(npin);
 	//, device, platform, signal
 	const pool = await getConnection();
 	try {
@@ -299,7 +299,7 @@ const genPassOtp = async (req, res) => {
 		const msg = `Your One Time Password (OTP) for Norrenberger Mobile Password update is :${otp} `
 		const { phone } = req.body;
 		const npin = req.body.pin;
-        const pin = normalizePin(npin);
+		const pin = normalizePin(npin);
 		const createDate = dateFormate.asString('yyyy-mm-dd hh:mm:ss.SSS', new Date());
 
 
@@ -344,7 +344,7 @@ const genPassOtp = async (req, res) => {
 						return
 					}
 					else {
-						
+
 						console.log("email sent");
 					}
 				})
@@ -392,7 +392,7 @@ const verifyUpassOtp = async (req, res) => {
 
 	const { otp } = req.body;
 	const npin = req.body.pin;
-    const pin = normalizePin(npin);
+	const pin = normalizePin(npin);
 	const pool = await getConnection();
 	try {
 		const upDate = dateFormate.asString('yyyy-mm-dd hh:mm:ss.SSS', new Date());

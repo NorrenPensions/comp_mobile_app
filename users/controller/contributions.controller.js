@@ -9,35 +9,206 @@ const { json } = require("express/lib/response");
 const normalizePin = require('../utility/normalizePin');
 const axios = require("axios");
 const { getAccessToken } = require("../../utils/authToken");
-const { contributionSummary } = require('./data.js');
+// const { contributionSummary } = require('./data.js');
 
 const contSummaryNew = async (req, res) => {
     const { pin } = req.params;
     const cleanPin = pin ? pin.trim() : "";
     const npin = normalizePin(cleanPin);
-    console.log("Processing contributionSummary for PIN (MOCK DATA):", npin);
+    console.log("Processing contributionSummary for PIN:", npin);
+
+    const pool = await getConnection();
+    const pinSearchResult = await pool
+        .request()
+        .input('pin', npin)
+        .query(
+            `SELECT PIN AS rsaPin FROM PFA.DBO.EMPLOYEES WHERE PIN = @pin OR MOBILE_PHONE = @pin`)
+
+    const { rsaPin } = pinSearchResult.recordset[0] || {};
+    console.log("PIN search result - rsaPin:", rsaPin);
+    const results = await pool
+        .request()
+        .input('pin', rsaPin)
+        .query(
+            `SELECT SUM(ISNULL(EMPLOYEE_CONTRIBUTION, 0)) AS employeeContr,
+                        SUM(ISNULL(EMPLOYER_CONTRIBUTION, 0)) AS employerContr
+                        FROM PFA.DBO.CONTRIBUTION WHERE PIN = @pin`)
+
+    const { employeeContr, employerContr } = results.recordset[0];
+
+    console.log("Database query results - rsaPin:", rsaPin, "employeeContr:", employeeContr, "employerContr:", employerContr);
 
     try {
-        const payload = contributionSummary.find(c => c.PIN === npin);
-        
-        if (payload) {
-            console.log("Constructed payload (MOCK): ", payload);
-            return res.json(payload);
-        } else {
-            console.log("Mock data not found for PIN:", npin);
-            return res.status(404).json({
-                error: 'Failed to fetch summary',
-                details: 'No mock data available for this PIN'
+        const pool = await getConnection();
+
+        const result = await pool.request().input('pin', pin).query(`
+            EXEC PFA.dbo.sp_GetCurrentValueOfFunds @pin = @pin
+            `)
+
+        console.log("Result: ", result.recordsets[0])
+
+        const fundCodeMap = {
+            73: "FUND1",
+            1: "FUND2",
+            74: "FUND3",
+            12: "FUND4",
+            79: "FUND5",
+            84: "FUND6 ACTIVE",
+            87: "FUND7 FCY",
+        }
+
+        const formatDecimal = (val) => {
+            const num = Number(val);
+            return isNaN(num) ? 0 : Number(num.toFixed(2));
+        };
+
+        const records = result.recordsets[0] || [];
+        const fcyFundId = 87;
+        const totalAllBalance = records
+            .filter(item => item.fund_id !== fcyFundId)
+            .reduce((sum, item) => sum + (Number(item.balance) || 0), 0);
+
+        console.log("All records: ", records);
+
+        const fund79Record = records.find(item => item.fund_id === 79);
+        const balanceVoluntary = fund79Record ? (fund79Record.balance || 0) : 0;
+
+        const growthVoluntary = fund79Record
+            ? (fund79Record['gain/loss'] !== undefined ? fund79Record['gain/loss'] : (fund79Record['Gain/Loss'] !== undefined ? fund79Record['Gain/Loss'] : 0))
+            : 0;
+
+        const growthMandatory = records
+            .filter(item => item.fund_id !== 79)
+            .reduce((sum, item) => {
+                const gainLoss = item['gain/loss'] !== undefined ? item['gain/loss'] : (item['Gain/Loss'] !== undefined ? item['Gain/Loss'] : 0);
+                return sum + (Number(gainLoss) || 0);
+            }, 0);
+        // Placeholder declarations to prevent ReferenceError
+        let totalContributionVoluntary = 0;
+        let netContributionMandatory = 0;
+        let totalUnitMandatory = 0;
+        let totalUnitVoluntary = 0;
+        let balanceMandatory = 0;
+
+        let totalBalance = 0;
+
+        const fundIdResult = await pool.request()
+            .input('pin', pin)
+            .query(`
+                SELECT PFA.dbo.cvi_getMemberFund2(@pin) AS fund_id
+            `);
+        const primaryFundId = fundIdResult.recordset[0] ? fundIdResult.recordset[0].fund_id : null;
+        console.log("fundId: ", primaryFundId)
+
+        const fcyExists = records.some((item) => item.fund_id === fcyFundId);
+
+        if (!fcyExists) {
+            records.push({
+                fund_id: fcyFundId,
+                balance: 0,
+                "Gain/Loss": 0
             });
         }
+
+        const fcyRecord = records.find(item => item.fund_id === fcyFundId);
+        const fcyBalance = fcyRecord ? (Number(fcyRecord.balance) || 0) : 0;
+
+        const allowedFundIds = [
+            Number(primaryFundId),
+            79,
+            87,
+        ];
+
+        const threeRecords = records.filter((item) => {
+            const fundId = Number(item.Fund_id ?? item.fund_id);
+            return allowedFundIds.includes(fundId);
+        });
+
+        console.log("Filtered records for allowed fund IDs: ", threeRecords);
+
+        const mappedFunds = threeRecords.map(item => {
+            const fId = item.Fund_id !== undefined ? item.Fund_id : item.fund_id;
+            const bal = item.Balance !== undefined ? item.Balance : (item.balance !== undefined ? item.balance : 0);
+            const gainLoss = item['Gain/Loss'] !== undefined ? item['Gain/Loss'] : (item['gain/loss'] !== undefined ? item['gain/loss'] : 0);
+            return {
+                FUND_ID: fId,
+                FUND_CODE: fundCodeMap[fId] || `FUND ${fId}`,
+                BALANCE: formatDecimal(bal),
+                GROWTH: formatDecimal(gainLoss)
+            };
+        });
+
+        const payload =
+        {
+            PIN: rsaPin,
+            FUND_CODE: fundCodeMap[primaryFundId],
+            EMPLOYEE_CONTRIBUTION: formatDecimal(employeeContr),
+            EMPLOYER_CONTRIBUTION: formatDecimal(employerContr),
+            TOTAL_CONTRIBUTION: formatDecimal(employeeContr + employerContr),
+            VOLUNTARY_CONTRIBUTION: formatDecimal(balanceVoluntary),
+            NET_CONTRIBUTION: formatDecimal(netContributionMandatory),
+            UNITS: formatDecimal(totalUnitMandatory),
+            CUMULATIVE_VOLUNTARY_UNIT: formatDecimal(totalUnitVoluntary),
+            BALANCE: formatDecimal(balanceMandatory),
+            RSA_GROWTH: formatDecimal(growthMandatory),
+            VOLUNTARY_BALANCE: formatDecimal(balanceVoluntary),
+            VOLUNTARY_GROWTH: formatDecimal(growthVoluntary),
+            TOTAL_UNITS: formatDecimal(Number(totalUnitMandatory || 0) + Number(totalUnitVoluntary || 0)),
+            TOTAL_BALANCE: formatDecimal(totalAllBalance),
+            TOTAL_GROWTH: formatDecimal(Number(growthMandatory || 0) + Number(growthVoluntary || 0)),
+            FCY_BALANCE: formatDecimal(fcyBalance),
+            FUNDS: mappedFunds
+        }
+
+        console.log("Constructed payload: ", payload);
+        res.json(payload);
+
     } catch (error) {
-        console.error('Error fetching mock summary:', error);
-        res.status(500).json({
+        console.error('Error fetching from pension API:');
+        if (error.response) {
+            console.error('Status:', error.response.status);
+            console.error('Data:', JSON.stringify(error.response.data, null, 2));
+        } else {
+            console.error('Message:', error.message);
+        }
+
+        res.status(error.response?.status || 500).json({
             error: 'Failed to fetch summary',
-            details: error.message
+            details: error.response?.data || error.message
         });
     }
+
+
 }
+
+
+// const contSummaryNew = async (req, res) => {
+//     const { pin } = req.params;
+//     const cleanPin = pin ? pin.trim() : "";
+//     const npin = normalizePin(cleanPin);
+//     console.log("Processing contributionSummary for PIN (MOCK DATA):", npin);
+
+//     try {
+//         const payload = contributionSummary.find(c => c.PIN === npin);
+
+//         if (payload) {
+//             console.log("Constructed payload (MOCK): ", payload);
+//             return res.json(payload);
+//         } else {
+//             console.log("Mock data not found for PIN:", npin);
+//             return res.status(404).json({
+//                 error: 'Failed to fetch summary',
+//                 details: 'No mock data available for this PIN'
+//             });
+//         }
+//     } catch (error) {
+//         console.error('Error fetching mock summary:', error);
+//         res.status(500).json({
+//             error: 'Failed to fetch summary',
+//             details: error.message
+//         });
+//     }
+// }
 
 const contSummary = async (req, res) => {
     const { pin } = req.params;
@@ -705,7 +876,6 @@ const miniStatetsments = async (req, res) => {
 
 
 }
-
 
 const getStatement = async (req, res) => {
 

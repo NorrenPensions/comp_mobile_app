@@ -1,5 +1,4 @@
 const Sentry = require('@sentry/node');
-const { ONE_SIGNAL_CONFIG } = require("../config/app.config")
 
 var sendNotification = function (data) {
   var headers = {
