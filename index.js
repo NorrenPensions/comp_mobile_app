@@ -63,6 +63,18 @@ app.get("/health", (_req, res) => {
   });
 });
 
+// App version update check for Flutter mobile client
+app.get('/app-version', (req, res) => {
+  res.json({
+    latestVersion: "2.2.13", // Bump this whenever a new version goes live on the stores
+    minRequiredVersion: "2.2.10",
+    forceUpdate: false, // Set to true if an old version must be blocked from continuing
+    releaseNotes: "Performance improvements, enhanced security, and bug fixes.",
+    androidUrl: "https://play.google.com/store/apps/details?id=com.norrenbergerpension.mobile",
+    iosUrl: "https://apps.apple.com/app/id1608079890"
+  });
+});
+
 // Register Sentry error handler after all routes
 Sentry.setupExpressErrorHandler(app);
 
@@ -77,34 +89,4 @@ const PORT = process.env.PORT || 7555;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`App listening on port ${PORT}`);
 });
-
-
-// app.get("/debug-sentry", function mainHandler(req, res) {
-//   throw new Error("My first Sentry error!");
-// });
-
-// app.get('/health', (_req, res) => {
-//   res.status(200).json({
-//     status: 'ok',
-//     timestamp: new Date().toISOString(),
-//   });
-// });
-
-// // The error handler must be registered before any other error middleware and after all controllers
-// Sentry.setupExpressErrorHandler(app);
-
-// // Optional fallthrough error handler
-// app.use(function onError(err, req, res, next) {
-//   // The error id is attached to `res.sentry` to be returned
-//   // and optionally displayed to the user for support.
-//   res.statusCode = 500;
-//   res.end(res.sentry + "\n");
-// });
-
-// // const port = process.env.PORT;
-// const server = app.listen(5, function () {
-//   let host = server.address().address;
-//   let port = server.address().port;
-//   console.log("App listening on port", host, port);
-// });
 
