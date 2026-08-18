@@ -2,6 +2,30 @@ const Sentry = require('@sentry/node');
 const sql = require('mssql');
 const axios = require('axios');
 
+// Resolve Gateway configuration
+function getGatewayConfig() {
+    const gatewayUrl = process.env.GATEWAY_URL || process.env.ONPREM_GATEWAY_URL;
+    const apiKey = process.env.GATEWAY_API_KEY;
+
+    return { gatewayUrl, apiKey };
+}
+
+// Log startup status once
+const { gatewayUrl, apiKey } = getGatewayConfig();
+if (gatewayUrl && apiKey) {
+    console.log('=======================================================');
+    console.log('📡 [DATABASE] Mode: ON-PREMISE API GATEWAY');
+    console.log(`🔗 [DATABASE] Gateway URL: ${gatewayUrl}`);
+    console.log('🔒 [DATABASE] API Key: Configured (GATEWAY_API_KEY)');
+    console.log('=======================================================');
+} else {
+    console.warn('=======================================================');
+    console.warn('⚠️ [DATABASE] Mode: DIRECT MSSQL CONNECTION');
+    console.warn(`🖥️ [DATABASE] DB Server: ${process.env.DB_SERVER || 'Not configured'}`);
+    console.warn('💡 If running on Render, ensure GATEWAY_URL and GATEWAY_API_KEY are set in Render Environment Variables!');
+    console.warn('=======================================================');
+}
+
 // Direct MSSQL settings (for local development or direct LAN access)
 const dbsetttings = {
     user: process.env.DB_USER,
@@ -71,15 +95,16 @@ class GatewayProxyRequest {
 
             if (response.data && response.data.success) {
                 return {
-                    recordset: response.data.recordset,
-                    recordsets: response.data.recordsets,
-                    rowsAffected: response.data.rowsAffected
+                    recordset: response.data.recordset || [],
+                    recordsets: response.data.recordsets || [response.data.recordset || []],
+                    rowsAffected: response.data.rowsAffected || []
                 };
             } else {
                 throw new Error(response.data?.error || 'Unknown gateway query execution error');
             }
         } catch (error) {
-            console.error('❌ Gateway Proxy Query Error:', error.response?.data || error.message);
+            const errorDetails = error.response?.data?.error || error.message;
+            console.error(`❌ Gateway Proxy Query Error [${this.gatewayUrl}]:`, errorDetails);
             if (Sentry && typeof Sentry.captureException === 'function') {
                 Sentry.captureException(error);
             }
@@ -101,9 +126,10 @@ class GatewayProxyPool {
     }
 }
 
+let directPool = null;
+
 async function getConnection() {
-    const gatewayUrl = process.env.ONPREM_GATEWAY_URL;
-    const apiKey = process.env.ONPREM_GATEWAY_API_KEY;
+    const { gatewayUrl, apiKey } = getGatewayConfig();
 
     if (gatewayUrl && apiKey) {
         // Mode 1: HTTP Gateway Proxy Mode (e.g. deployed on Render)
@@ -112,14 +138,49 @@ async function getConnection() {
 
     // Mode 2: Direct Database Connection Mode (e.g. running locally / on-prem)
     try {
-        const pool = await sql.connect(dbsetttings);
-        return pool;
+        if (directPool && directPool.connected) {
+            return directPool;
+        }
+        directPool = await sql.connect(dbsetttings);
+        return directPool;
     } catch (error) {
-        console.error('❌ Direct SQL Connection Error:', error);
+        console.error('❌ Direct SQL Connection Error:', error.message);
         if (Sentry && typeof Sentry.captureException === 'function') {
             Sentry.captureException(error);
         }
+        throw error;
     }
 }
 
-module.exports = { getConnection };
+// MySQL compatibility layer for legacy routes importing mysqlConnect
+const mysqlConnect = {
+    query: async (queryStr, valuesOrCb, maybeCb) => {
+        let values = [];
+        let callback = null;
+        if (typeof valuesOrCb === 'function') {
+            callback = valuesOrCb;
+        } else {
+            values = valuesOrCb;
+            callback = maybeCb;
+        }
+
+        try {
+            const pool = await getConnection();
+            const req = pool.request();
+            const result = await req.query(queryStr);
+            const rows = result.recordset || [];
+            if (typeof callback === 'function') {
+                callback(null, rows);
+            }
+            return rows;
+        } catch (err) {
+            if (typeof callback === 'function') {
+                callback(err, null);
+            } else {
+                throw err;
+            }
+        }
+    }
+};
+
+module.exports = { getConnection, mysqlConnect };
