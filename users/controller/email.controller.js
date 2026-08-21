@@ -12,62 +12,31 @@ const normalizePin = require('../utility/normalizePin');
 
 var price;
 
-// async function generatePDF(htmlContent, outputPath) {
-//     const userDataDir = path.join(os.tmpdir(), 'puppeteer-profile');
-
-//     console.log("HTML size:", Buffer.byteLength(htmlContent, 'utf8'), "bytes");
-
-//     let browser;
-//     try {
-//       browser = await puppeteer.launch({
-//         headless: 'new', // Use the latest headless mode for better stability
-//         args: [
-//           '--no-sandbox',
-//           '--disable-setuid-sandbox',
-//           '--disable-dev-shm-usage',
-//           '--single-process',
-//           '--no-zygote',
-//           '--disable-gpu'
-//         ],
-//         userDataDir
-//       });
-
-//       const page = await browser.newPage();
-
-//       // Set a reasonable timeout and wait for a key element instead of network idle
-//       await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
-//       await page.waitForSelector('body', { timeout: 5000 });
-
-//       // Optional: small delay to ensure rendering is complete
-//       await new Promise(resolve => setTimeout(resolve, 300));
-
-//       const pdfBuffer = await page.pdf({
-//         format: 'A4',
-//         landscape: false,
-//         margin: { top: '2mm', right: '2mm', bottom: '2mm', left: '2mm' },
-//         printBackground: true
-//       });
-
-//       fs.writeFileSync(outputPath, pdfBuffer);
-//     } catch (error) {
-//       console.error('Error generating PDF:', error);
-//       throw error;
-//     } finally {
-//       if (browser) await browser.close();
-//     }
-// }
-
 async function generatePDF(htmlContent, outputPath) {
+    let browser;
     try {
-        const browser = await puppeteer.launch({
-            executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-            headless: false,
+        // Ensure output directory exists
+        const outputDir = path.dirname(outputPath);
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+        }
+
+        const launchOptions = {
+            headless: true,
             args: [
                 "--no-sandbox",
                 "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage"
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--no-zygote"
             ]
-        });
+        };
+
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        }
+
+        browser = await puppeteer.launch(launchOptions);
 
         const page = await browser.newPage();
         await page.setContent(htmlContent, { waitUntil: "domcontentloaded" });
@@ -84,59 +53,15 @@ async function generatePDF(htmlContent, outputPath) {
         fs.writeFileSync(outputPath, pdfBuffer);
 
         await page.close();
-        await browser.close();
     } catch (error) {
         console.error("Error generating PDF:", error);
         throw error;
+    } finally {
+        if (browser) {
+            await browser.close();
+        }
     }
 }
-
-// async function generatePDF(htmlContent, outputPath) {
-//     try {
-//         const browser = await puppeteer.launch({
-//             executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-//             headless: true,
-//             args: ['--no-sandbox', '--disable-setuid-sandbox'],
-//             userDataDir: 'C:\\Temp\\puppeteer-profile'
-//         });
-
-//         const page = await browser.newPage();
-//         await page.setContent(htmlContent, { waitUntil: 'load' });
-
-//         await page.pdf({
-//             path: outputPath,
-//             format: "A4",
-//             landscape: false,
-//             margin: { top: "2mm", right: "2mm", bottom: "2mm", left: "2mm" },
-//             printBackground: true,
-//         });
-
-//         await browser.close();
-//     } catch (error) {
-//         console.error("Error generating PDF:", error);
-//         throw error;
-//     }
-// }
-
-// async function generatePDF(htmlContent, outputPath) {
-//     const browser = await puppeteer.launch({
-//         executablePath: 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-//         headless: true
-//     });
-
-//     const page = await browser.newPage();
-//     await page.setContent(htmlContent, { waitUntil: 'load' });
-
-//     await page.pdf({
-//         path: outputPath,
-//         format: "A4",
-//         landscape: false,
-//         margin: { top: "2mm", right: "2mm", bottom: "2mm", left: "2mm" },
-//         printBackground: true,
-//     });
-
-//     await browser.close();
-// }
 
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
