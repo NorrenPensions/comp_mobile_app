@@ -411,7 +411,6 @@ module.exports = { regUser, userAuth, getUserData, getCompanyDetails, updateClie
 // const bcrypt = require("bcryptjs");
 // const dateFormate = require("date-format");
 // const normalizePin = require('../utility/normalizePin');
-// const { appUsers, employees } = require('./data.js');
 
 // const regUser = async (req, res) => {
 //   try {

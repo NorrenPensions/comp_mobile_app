@@ -9,7 +9,6 @@ const { json } = require("express/lib/response");
 const normalizePin = require('../utility/normalizePin');
 const axios = require("axios");
 const { getAccessToken } = require("../../utils/authToken");
-// const { contributionSummary } = require('./data.js');
 
 const contSummaryNew = async (req, res) => {
     const { pin } = req.params;
@@ -17,35 +16,49 @@ const contSummaryNew = async (req, res) => {
     const npin = normalizePin(cleanPin);
     console.log("Processing contributionSummary for PIN:", npin);
 
-    const pool = await getConnection();
-    const pinSearchResult = await pool
-        .request()
-        .input('pin', npin)
-        .query(
-            `SELECT PIN AS rsaPin FROM PFA.DBO.EMPLOYEES WHERE PIN = @pin OR MOBILE_PHONE = @pin`)
-
-    const { rsaPin } = pinSearchResult.recordset[0] || {};
-    console.log("PIN search result - rsaPin:", rsaPin);
-    const results = await pool
-        .request()
-        .input('pin', rsaPin)
-        .query(
-            `SELECT SUM(ISNULL(EMPLOYEE_CONTRIBUTION, 0)) AS employeeContr,
-                        SUM(ISNULL(EMPLOYER_CONTRIBUTION, 0)) AS employerContr
-                        FROM PFA.DBO.CONTRIBUTION WHERE PIN = @pin`)
-
-    const { employeeContr, employerContr } = results.recordset[0];
-
-    console.log("Database query results - rsaPin:", rsaPin, "employeeContr:", employeeContr, "employerContr:", employerContr);
-
     try {
         const pool = await getConnection();
+        const pinSearchResult = await pool
+            .request()
+            .input('pin', npin)
+            .query(
+                `SELECT PIN AS rsaPin FROM PFA.DBO.EMPLOYEES WHERE PIN = @pin OR MOBILE_PHONE = @pin`);
 
-        const result = await pool.request().input('pin', pin).query(`
+        const { rsaPin } = (pinSearchResult.recordset && pinSearchResult.recordset[0]) || {};
+        console.log("PIN search result - rsaPin:", rsaPin);
+
+        const targetPin = rsaPin || npin;
+        console.log("Target Pin: ", targetPin);
+
+        const results = await pool
+            .request()
+            .input('pin', targetPin)
+            .query(
+                `SELECT SUM(ISNULL(EMPLOYEE_CONTRIBUTION, 0)) AS employeeContr,
+                            SUM(ISNULL(EMPLOYER_CONTRIBUTION, 0)) AS employerContr
+                            FROM PFA.DBO.CONTRIBUTION WHERE PIN = @pin`);
+
+        const { employeeContr = 0, employerContr = 0 } = (results.recordset && results.recordset[0]) || {};
+
+        console.log("Database query results - rsaPin:", targetPin, "employeeContr:", employeeContr, "employerContr:", employerContr);
+
+        const result = await pool.request().input('pin', targetPin).query(`
             EXEC PFA.dbo.sp_GetCurrentValueOfFunds @pin = @pin
-            `)
+            `);
 
-        console.log("Result: ", result.recordsets[0])
+        const mandatoryRes = await pool.request().input('pin', targetPin).query(`
+            EXEC PFA.dbo.sp_GetCurrentValueOfMandatory @pin = @pin
+            `);
+
+        const mandatoryRecord = mandatoryRes.recordset?.[0] || mandatoryRes.recordsets?.[0]?.[0];
+        const mandatoryGainLoss = mandatoryRecord ? (mandatoryRecord['Gain/Loss'] ?? mandatoryRecord['gain/loss'] ?? mandatoryRecord['GAIN/LOSS']) : null;
+
+        const pppRes = await pool.request().input('pin', targetPin).query(`
+            EXEC PFA.dbo.sp_GetCurrentValueOfPPP @pin = @pin
+            `);
+
+        const pppRecord = pppRes.recordset?.[0] || pppRes.recordsets?.[0]?.[0];
+        const pppGainLoss = pppRecord ? (pppRecord['Gain/Loss'] ?? pppRecord['gain/loss'] ?? pppRecord['GAIN/LOSS']) : null;
 
         const fundCodeMap = {
             73: "FUND1",
@@ -93,12 +106,12 @@ const contSummaryNew = async (req, res) => {
         let totalBalance = 0;
 
         const fundIdResult = await pool.request()
-            .input('pin', pin)
+            .input('pin', targetPin)
             .query(`
                 SELECT PFA.dbo.cvi_getMemberFund2(@pin) AS fund_id
             `);
-        const primaryFundId = fundIdResult.recordset[0] ? fundIdResult.recordset[0].fund_id : null;
-        console.log("fundId: ", primaryFundId)
+        const primaryFundId = fundIdResult.recordset && fundIdResult.recordset[0] ? fundIdResult.recordset[0].fund_id : null;
+        console.log("fundId: ", primaryFundId);
 
         const fcyExists = records.some((item) => item.fund_id === fcyFundId);
 
@@ -155,7 +168,7 @@ const contSummaryNew = async (req, res) => {
             VOLUNTARY_GROWTH: formatDecimal(growthVoluntary),
             TOTAL_UNITS: formatDecimal(Number(totalUnitMandatory || 0) + Number(totalUnitVoluntary || 0)),
             TOTAL_BALANCE: formatDecimal(totalAllBalance),
-            TOTAL_GROWTH: formatDecimal(Number(growthMandatory || 0) + Number(growthVoluntary || 0)),
+            TOTAL_GROWTH: formatDecimal(Number(mandatoryGainLoss || 0) + Number(pppGainLoss || 0)),
             FCY_BALANCE: formatDecimal(fcyBalance),
             FUNDS: mappedFunds
         }
@@ -180,35 +193,6 @@ const contSummaryNew = async (req, res) => {
 
 
 }
-
-
-// const contSummaryNew = async (req, res) => {
-//     const { pin } = req.params;
-//     const cleanPin = pin ? pin.trim() : "";
-//     const npin = normalizePin(cleanPin);
-//     console.log("Processing contributionSummary for PIN (MOCK DATA):", npin);
-
-//     try {
-//         const payload = contributionSummary.find(c => c.PIN === npin);
-
-//         if (payload) {
-//             console.log("Constructed payload (MOCK): ", payload);
-//             return res.json(payload);
-//         } else {
-//             console.log("Mock data not found for PIN:", npin);
-//             return res.status(404).json({
-//                 error: 'Failed to fetch summary',
-//                 details: 'No mock data available for this PIN'
-//             });
-//         }
-//     } catch (error) {
-//         console.error('Error fetching mock summary:', error);
-//         res.status(500).json({
-//             error: 'Failed to fetch summary',
-//             details: error.message
-//         });
-//     }
-// }
 
 const contSummary = async (req, res) => {
     const { pin } = req.params;
