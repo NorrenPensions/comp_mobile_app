@@ -205,12 +205,22 @@ const sendStatement = async (req, res) => {
         // 4. Compile and render Handlebars template
         const templatePath = path.join(__dirname, "../../adhoc_statement_template/templates/adhoc-statement.hbs");
         const cssPath = path.join(__dirname, "../../adhoc_statement_template/public/css/adhoc-statement.css");
+        const logoPath = path.join(__dirname, "../../adhoc_statement_template/public/img/norren-logo.png");
+        const footerPath = path.join(__dirname, "../../adhoc_statement_template/public/img/footer.png");
+        const watermarkPath = path.join(__dirname, "../../adhoc_statement_template/public/img/watermark.png");
+
+        const logoUrl = fs.existsSync(logoPath) ? `data:image/png;base64,${fs.readFileSync(logoPath).toString("base64")}` : "";
+        const bannerUrl = fs.existsSync(footerPath) ? `data:image/png;base64,${fs.readFileSync(footerPath).toString("base64")}` : "";
+        const watermarkUrl = fs.existsSync(watermarkPath) ? `data:image/png;base64,${fs.readFileSync(watermarkPath).toString("base64")}` : "";
 
         const templateSource = fs.readFileSync(templatePath, "utf8");
         const template = handlebars.compile(templateSource);
 
         const templateData = {
             statementEndLabel: formatEndLabel(to),
+            logoUrl,
+            bannerUrl,
+            watermarkUrl,
             header,
             body
         };
