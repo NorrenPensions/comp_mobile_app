@@ -112,6 +112,14 @@ class GatewayProxyRequest {
             throw error;
         }
     }
+
+    async execute(procedureName) {
+        const paramList = this.inputs.map(inp => `@${inp.name} = @${inp.name}`).join(', ');
+        const execQuery = paramList.length > 0 
+            ? `EXEC ${procedureName} ${paramList}`
+            : `EXEC ${procedureName}`;
+        return this.query(execQuery);
+    }
 }
 
 // HTTP Proxy Pool for On-Prem Gateway
