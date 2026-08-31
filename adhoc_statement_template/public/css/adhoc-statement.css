@@ -1,4 +1,4 @@
-@page { size: A4; margin: 10mm; }
+@page { size: A4; margin: 8mm; }
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -8,12 +8,11 @@ body {
   font-size: 11px;
 }
 .statement-page {
-  width: 190mm;
-  min-height: 277mm;
+  width: 100%;
+  max-width: 190mm;
   margin: 0 auto;
-  padding: 8mm 6mm 12mm;
+  padding: 2mm 2mm 8mm;
   position: relative;
-  overflow: hidden;
 }
 .statement-page::after {
   content: "";
@@ -30,19 +29,51 @@ body {
 }
 .top-header {
   display: grid;
-  grid-template-columns: 38% 62%;
+  grid-template-columns: 42% 58%;
   align-items: start;
-  min-height: 30mm;
+  min-height: 24mm;
+  margin-bottom: 2mm;
 }
-.logo { width: 45mm; height: auto; margin-top: 7mm; }
-.text-logo { color: #f04b23; font-size: 22px; font-weight: 700; line-height: 1; margin-top: 10mm; letter-spacing: .3px; }
-.text-logo .dot { display:inline-block; width: 7mm; height: 7mm; border-radius: 50%; background:#ff8500; margin-right:4mm; vertical-align:middle; }
-.text-logo small { display:block; color:#555; font-size:14px; margin-left:31mm; margin-top:2px; }
+.logo { width: 45mm; height: auto; margin-top: 4mm; }
+.text-logo {
+  display: flex;
+  align-items: flex-start;
+  gap: 3.5mm;
+  margin-top: 5mm;
+  position: relative;
+}
+.text-logo .dot {
+  width: 9.5mm;
+  height: 9.5mm;
+  min-width: 9.5mm;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 32%, #ffbb6c 0%, #ff7700 45%, #ea4015 85%);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  margin-top: -3.5mm;
+}
+.text-logo .logo-text {
+  display: flex;
+  flex-direction: column;
+}
+.text-logo .brand-name {
+  color: #f04b23;
+  font-size: 23px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.1px;
+}
+.text-logo .brand-sub {
+  color: #555555;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-top: 1.5px;
+}
 .office-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: 11mm;
-  row-gap: 4mm;
+  row-gap: 3.5mm;
   font-size: 8px;
   line-height: 1.18;
 }
@@ -57,12 +88,12 @@ body {
 }
 .title {
   text-align: center;
-  font-size: 15px;
+  font-size: 14.5px;
   margin-top: 2mm;
-  margin-bottom: 4mm;
+  margin-bottom: 3.5mm;
 }
-.section { margin-bottom: 2mm; break-inside: avoid; }
-.section h2 { font-size: 14px; line-height: 1; }
+.section { margin-bottom: 3mm; }
+.section h2 { font-size: 13.5px; line-height: 1; }
 .details-grid {
   display: grid;
   grid-template-columns: 55mm 1fr;
@@ -73,13 +104,14 @@ body {
 }
 .label { font-weight: 700; }
 table { width: 100%; border-collapse: collapse; }
+tr { break-inside: avoid; }
 .summary-table { font-size: 11px; }
 .summary-table th { text-align: right; font-weight: 700; padding: 1.2mm 2mm; }
 .summary-table th:first-child { text-align: left; }
 .summary-table td { padding: 1.1mm 2mm; text-align: right; }
 .summary-table td:first-child { text-align: left; font-weight: 700; width: 34%; }
 .summary-table .ruled td:not(:first-child) { border-top: 1.5px solid #777; }
-.transactions-section { margin-top: 2.5mm; }
+.transactions-section { margin-top: 3mm; }
 .transactions-table { font-size: 11px; }
 .transactions-table thead th {
   border: 1.5px solid #111;
@@ -101,7 +133,7 @@ table { width: 100%; border-collapse: collapse; }
   padding-bottom: 1.5mm;
 }
 .txn-row.final-row td { border-top: 1.5px solid #111; padding-top: 2.2mm; }
-.note-footer { margin-top: 7mm; font-size: 9px; line-height: 1.2; break-inside: avoid; }
+.note-footer { margin-top: 6mm; font-size: 9px; line-height: 1.2; break-inside: avoid; }
 .note-footer h3 {
   color: #f04b23;
   border-bottom: 2px solid #f04b23;
@@ -120,6 +152,6 @@ table { width: 100%; border-collapse: collapse; }
 }
 .placeholder-banner span { color: #f04b23; font-weight: 700; }
 @media print {
-  .statement-page { margin: 0; }
-  .month-row, .txn-row, .section { break-inside: avoid; }
+  .statement-page { margin: 0; padding: 0; }
+  .month-row, .txn-row, tr { break-inside: avoid; }
 }
