@@ -32,7 +32,7 @@ const sendStatement = async (req, res) => {
         const pin = normalizePin(npin);
         console.log("Statement Req Payload: ", from, to, sendToEmail, pin);
 
-        const pool = await getConnection();
+        const pool = await getConnection('PFA');
 
         const today = new Date().toDateString();
 

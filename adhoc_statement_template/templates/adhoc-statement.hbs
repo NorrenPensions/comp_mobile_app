@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RSA Statement</title>
+  <link rel="stylesheet" href="../public/css/adhoc-statement.css" />
+</head>
+<body>
+  <main class="statement-page">
+    <header class="top-header">
+      <div class="brand-block">
+        {{#if logoUrl}}
+          <img src="{{logoUrl}}" alt="Norrenberger Pensions" class="logo" />
+        {{else}}
+          <div class="text-logo"><span class="dot"></span><span>nörrenberger</span><small>Pensions</small></div>
+        {{/if}}
+      </div>
+
+      <div class="office-grid">
+        <div><strong>Head Office</strong><br />22, Otukpo Street, Off Gimbiya Street,<br />Area 11, Garki, Abuja.</div>
+        <div><strong>Kano Office</strong><br />Ground floor, B-Centre Plaza,<br />opp. Kano State Assembly, Off Zaria Road,<br />Kano.</div>
+        <div><strong>Port Harcout Office</strong><br />8, Ohaeto Street, D-Line, Port Harcourt,<br />Rivers State</div>
+        <div><strong>Lagos Office</strong><br />2, Okotie Eboh Street, Ikoyi, Lagos.</div>
+      </div>
+    </header>
+
+    <h1 class="title">RETIREMENT SAVINGS ACCOUNT STATEMENT FOR QUARTER ENDED {{statementEndLabel}}</h1>
+
+    <section class="section">
+      <h2>A. General Details</h2>
+      <div class="details-grid">
+        <div class="label">Name:</div><div>{{header.fullname}}</div>
+        <div class="label">Address:</div><div>{{header.addresses}}</div>
+        <div class="label">Employer:</div><div>{{header.employerName}}</div>
+        <div class="label">State:</div><div>{{header.states}}</div>
+        <div class="label">Date of First Contribution:</div><div>{{header.dofc}}</div>
+        <div class="label">Current Fund:</div><div>{{header.fund}}</div>
+        <div class="label">PIN:</div><div>{{header.pin}}</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>B. Statement Summary</h2>
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Mandatory (N)</th>
+            <th>Voluntary (N)</th>
+            <th>Pre-Act/NSITF (N)</th>
+            <th>Total (N)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Total Contributions From Inception:</td><td>{{header.mandCont}}</td><td>{{header.volCont}}</td><td>{{header.preactNsitfCont}}</td><td>{{header.totalCont}}</td></tr>
+          <tr><td>Total Withdrawal From Inception:</td><td>{{header.mandWtdr}}</td><td>{{header.volWtdr}}</td><td>{{header.preactNsitfWtdr}}</td><td>{{header.totalWtdr}}</td></tr>
+          <tr class="ruled"><td>NET Contribution:</td><td>{{header.mandNet}}</td><td>{{header.volNet}}</td><td>{{header.preactNsitfNet}}</td><td>{{header.totalNet}}</td></tr>
+          <tr class="ruled"><td>Gain / (Loss) :</td><td>{{header.mandGrowth}}</td><td>{{header.volGrowth}}</td><td>{{header.preactNsitfGrowth}}</td><td>{{header.totalGrowth}}</td></tr>
+          <tr><td>Current Value:</td><td>{{header.mandBal}}</td><td>{{header.volBal}}</td><td>{{header.preactNsitfBal}}</td><td>{{header.totalBal}}</td></tr>
+          <tr><td>Total Units:</td><td>{{header.mandUnits}}</td><td>{{header.volUnits}}</td><td>{{header.preactNsitfUnits}}</td><td>{{header.totalUnits}}</td></tr>
+          <tr><td>Unit Price:</td><td></td><td></td><td></td><td><strong>{{header.unitPrice}}</strong></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section transactions-section">
+      <h2>C. Transactions for the Statement Period</h2>
+      <table class="transactions-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Date</th>
+            <th>Mandatory</th>
+            <th>Voluntary</th>
+            <th>Pre-Act/NSITF</th>
+            <th>Total</th>
+            <th>Remark</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each body}}
+            {{#if isGroupHeader}}
+              <tr class="month-row"><td colspan="7">{{header}}</td></tr>
+            {{else}}
+              <tr class="txn-row {{#if isFinal}}final-row{{/if}}">
+                <td>{{descr}}</td>
+                <td>{{transDate}}</td>
+                <td>{{mandatory}}</td>
+                <td>{{voluntary}}</td>
+                <td>{{preactNsitf}}</td>
+                <td>{{total}}</td>
+                <td>{{remark}}</td>
+              </tr>
+            {{/if}}
+          {{/each}}
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="note-footer">
+      <h3>NOTE</h3>
+      <p>Nörrenberger Pensions Limited charges an Administration Fee of N100 monthly, in addition to 7.5% VAT, deducted from your contributions. Fees are regulated by the National Pension Commission and are subject to change with prior notice where applicable.</p>
+      <p><strong>Contact Us:</strong> Head Office: No. 22 Otukpo Street, Off Gimbiya Street, Area 11, Garki, Abuja.</p>
+      <p><strong>Tel:</strong> 07002200300 &nbsp;&nbsp; <strong>Email:</strong> clientservice@norrenpensions.com &nbsp;&nbsp; <strong>Website:</strong> www.norrenpensions.com</p>
+      <p><strong>Stay in touch:</strong> @norrenbergerpensions; @norrenpensions</p>
+      {{#if bannerUrl}}
+        <img src="{{bannerUrl}}" alt="Retirement banner" class="footer-banner" />
+      {{else}}
+        <div class="footer-banner placeholder-banner"><strong>TRUE LIFE STARTS AFTER RETIREMENT</strong><br />Plan your future with <span>Norrenberger Pensions</span></div>
+      {{/if}}
+    </footer>
+  </main>
+</body>
+</html>
