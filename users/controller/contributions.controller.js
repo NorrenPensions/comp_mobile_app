@@ -43,8 +43,11 @@ const contSummaryNew = async (req, res) => {
         console.log("Database query results - rsaPin:", targetPin, "employeeContr:", employeeContr, "employerContr:", employerContr);
 
         const result = await pool.request().input('pin', targetPin).query(`
-            EXEC PFA.dbo.sp_GetCurrentValueOfFunds @pin = @pin
+            SELECT * FROM PFA.dbo.Cvi_udfMemberStmtHeader(${targetPin}, GETDATE())
             `);
+
+        const records = result.recordsets[0] || [];
+        console.log("Records: ", records);
 
         const mandatoryRes = await pool.request().input('pin', targetPin).query(`
             EXEC PFA.dbo.sp_GetCurrentValueOfMandatory @pin = @pin
@@ -75,7 +78,6 @@ const contSummaryNew = async (req, res) => {
             return isNaN(num) ? 0 : Number(num.toFixed(2));
         };
 
-        const records = result.recordsets[0] || [];
         const fcyFundId = 87;
         const totalAllBalance = records
             .filter(item => item.fund_id !== fcyFundId)
@@ -150,6 +152,8 @@ const contSummaryNew = async (req, res) => {
                 GROWTH: formatDecimal(gainLoss)
             };
         });
+
+        console.log("MappedFunds: ", mappedFunds);
 
         const payload =
         {

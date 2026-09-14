@@ -95,6 +95,23 @@ const sendStatement = async (req, res) => {
         request.input("DATETO", sql.VarChar(30), to);
         await request.execute("[PFA].[dbo].[proc_adhoc_statement]");
 
+        // Gain/Loss on Mandatory
+        const mandGainLossRes = await pool.request()
+            .input('PIN', sql.VarChar(30), pin)
+            .execute("[PFA].[dbo].[sp_GetCurrentValueOfMandatory]")
+
+        const mandGainLoss = mandGainLossRes.recordset?.[0]?.['Gain/Loss'] ?? 0;
+
+        // Gain/Loss on PPP
+        const pppGainLossRes = await pool.request()
+            .input('PIN', sql.VarChar(30), pin)
+            .execute("[PFA].[dbo].[sp_GetCurrentValueOfPPP]")
+
+        const pppGainLoss = pppGainLossRes.recordset?.[0]?.['Gain/Loss'] ?? 0;
+
+        // Total Gain/Loss
+        const totalGainLoss = mandGainLoss + pppGainLoss;
+
         // 2. Fetch header
         const headerResult = await pool.request()
             .input("pin", sql.VarChar(30), pin)
@@ -160,10 +177,10 @@ const sendStatement = async (req, res) => {
             volNet: formatAmount(dbHeader.VOL_NET),
             preactNsitfNet: formatAmount(dbHeader.PREACTNSITF_NET),
             totalNet: formatAmount(dbHeader.TOTAL_NET),
-            mandGrowth: formatAmount(dbHeader.MAND_GROWTH),
-            volGrowth: formatAmount(dbHeader.VOL_GROWTH),
+            mandGrowth: formatAmount(mandGainLoss),
+            volGrowth: formatAmount(pppGainLoss),
             preactNsitfGrowth: formatAmount(dbHeader.PREACTNSITF_GROWTH),
-            totalGrowth: formatAmount(dbHeader.TOTAL_GROWTH),
+            totalGrowth: formatAmount(totalGainLoss),
             mandBal: formatAmount(dbHeader.MAND_BAL),
             volBal: formatAmount(dbHeader.VOL_BAL),
             preactNsitfBal: formatAmount(dbHeader.PREACTNSITF_BAL),
