@@ -102,6 +102,8 @@ const sendStatement = async (req, res) => {
 
         const mandGainLoss = mandGainLossRes.recordset?.[0]?.['Gain/Loss'] ?? 0;
 
+        const mandBalance = mandGainLossRes.recordset?.[0]?.['Balance'] ?? 0;
+
         // Gain/Loss on PPP
         const pppGainLossRes = await pool.request()
             .input('PIN', sql.VarChar(30), pin)
@@ -109,62 +111,67 @@ const sendStatement = async (req, res) => {
 
         const pppGainLoss = pppGainLossRes.recordset?.[0]?.['Gain/Loss'] ?? 0;
 
+        const pppBalance = pppGainLossRes.recordset?.[0]?.['Balance'] ?? 0;
+
         // Total Gain/Loss
         const totalGainLoss = mandGainLoss + pppGainLoss;
 
+        // Total Balance
+        const totalBalance = mandBalance + pppBalance;
+
         // 2. Fetch header
         const headerResult = await pool.request()
-            .input("pin", sql.VarChar(30), pin)
-            .query("SELECT * FROM [PFA].[dbo].[ADHOC_STATEMENT_HEADER] WHERE PIN = @pin");
+            .input('pin', sql.VarChar(30), pin)
+            .query(`SELECT * FROM ADHOC_STATEMENT_HEADER WHERE PIN = @pin`);
 
         if (headerResult.recordset.length === 0) {
-            return res.status(404).json({ error: "No statement header found for the provided PIN" });
+            return res.status(404).json({ error: 'No statement header found for the provided PIN' });
         }
 
         const dbHeader = headerResult.recordset[0];
 
         // 3. Fetch body
         const bodyResult = await pool.request()
-            .input("pin", sql.VarChar(30), pin)
-            .query("SELECT * FROM [PFA].[dbo].[ADHOC_STATEMENT_BODY] WHERE PIN = @pin ORDER BY SN, CONTDATE, TRANS_DATE, DESCR DESC");
+            .input('pin', sql.VarChar(30), pin)
+            .query(`SELECT * FROM ADHOC_STATEMENT_BODY WHERE PIN = @pin ORDER BY SN, CONTDATE, TRANS_DATE, DESCR DESC`);
 
         const dbBody = bodyResult.recordset;
 
         // Formatter functions
         const formatAmount = (val) => {
-            if (val === undefined || val === null) return "0.00";
+            if (val === undefined || val === null) return '0.00';
             const num = parseFloat(val);
-            if (isNaN(num)) return "0.00";
+            if (isNaN(num)) return '0.00';
             if (num < 0) {
-                return `(${Math.abs(num).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
+                return `(${Math.abs(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
             }
-            return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         };
 
         const formatUnits = (val) => {
-            if (val === undefined || val === null) return "0.0000";
+            if (val === undefined || val === null) return '0.0000';
             const num = parseFloat(val);
-            if (isNaN(num)) return "0.0000";
-            return num.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+            if (isNaN(num)) return '0.0000';
+            return num.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
         };
 
-        const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
         const formatEndLabel = (dateString) => {
-            if (!dateString) return "";
+            if (!dateString) return '';
             const date = new Date(dateString);
-            if (isNaN(date.getTime())) return "";
-            return `${date.getDate().toString().padStart(2, "0")}-${months[date.getMonth()]}-${date.getFullYear()}`;
+            if (isNaN(date.getTime())) return '';
+            return `${date.getDate().toString().padStart(2, '0')}-${months[date.getMonth()]}-${date.getFullYear()}`;
         };
 
         // Format Header
         const header = {
-            fullname: dbHeader.FULLNAME || "",
-            addresses: dbHeader.ADDRESSES || "",
-            employerName: dbHeader.EMPLOYER_NAME || "",
-            states: dbHeader.STATES || "",
-            dofc: dbHeader.DOFC || "",
-            fund: dbHeader.FUND || "",
-            pin: dbHeader.PIN || "",
+            fullname: dbHeader.FULLNAME || '',
+            addresses: dbHeader.ADDRESSES || '',
+            employerName: dbHeader.EMPLOYER_NAME || '',
+            states: dbHeader.STATES || '',
+            dofc: dbHeader.DOFC || '',
+            fund: dbHeader.FUND || '',
+            pin: dbHeader.PIN || '',
             mandCont: formatAmount(dbHeader.MAND_CONT),
             volCont: formatAmount(dbHeader.VOL_CONT),
             preactNsitfCont: formatAmount(dbHeader.PREACTNSITF_CONT),
@@ -181,10 +188,10 @@ const sendStatement = async (req, res) => {
             volGrowth: formatAmount(pppGainLoss),
             preactNsitfGrowth: formatAmount(dbHeader.PREACTNSITF_GROWTH),
             totalGrowth: formatAmount(totalGainLoss),
-            mandBal: formatAmount(dbHeader.MAND_BAL),
-            volBal: formatAmount(dbHeader.VOL_BAL),
+            mandBal: formatAmount(mandBalance),
+            volBal: formatAmount(pppBalance),
             preactNsitfBal: formatAmount(dbHeader.PREACTNSITF_BAL),
-            totalBal: formatAmount(dbHeader.TOTAL_BAL),
+            totalBal: formatAmount(totalBalance),
             mandUnits: formatUnits(dbHeader.MAND_UNITS),
             volUnits: formatUnits(dbHeader.VOL_UNITS),
             preactNsitfUnits: formatUnits(dbHeader.PREACTNSITF_UNITS),
