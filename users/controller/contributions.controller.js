@@ -43,7 +43,7 @@ const contSummaryNew = async (req, res) => {
         console.log("Database query results - rsaPin:", targetPin, "employeeContr:", employeeContr, "employerContr:", employerContr);
 
         const result = await pool.request().input('pin', targetPin).query(`
-            SELECT * FROM PFA.dbo.Cvi_udfMemberStmtHeader(@pin, GETDATE())
+            EXEC PFA.dbo.sp_GetCurrentValueOfFunds @pin = @pin
             `);
 
         const records = result.recordsets[0] || [];

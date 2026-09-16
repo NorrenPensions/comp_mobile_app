@@ -25,7 +25,7 @@ const regUser = async (req, res) => {
       .request()
       .input("pin", pin)
       .query("SELECT pin FROM IEIMobileDB.dbo.APPUSERS WHERE pin = @pin");
-    console.log("CheckUser Result: ", checkUser.recordset);
+
     if (checkUser.recordset.length === 0) {
       const getData = await pool
         .request()
