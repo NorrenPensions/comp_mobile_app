@@ -122,7 +122,7 @@ const sendStatement = async (req, res) => {
         // 2. Fetch header
         const headerResult = await pool.request()
             .input('pin', sql.VarChar(30), pin)
-            .query(`SELECT * FROM ADHOC_STATEMENT_HEADER WHERE PIN = @pin`);
+            .query(`SELECT * FROM PFA.dbo.ADHOC_STATEMENT_HEADER WHERE PIN = @pin`);
 
         if (headerResult.recordset.length === 0) {
             return res.status(404).json({ error: 'No statement header found for the provided PIN' });
@@ -133,7 +133,7 @@ const sendStatement = async (req, res) => {
         // 3. Fetch body
         const bodyResult = await pool.request()
             .input('pin', sql.VarChar(30), pin)
-            .query(`SELECT * FROM ADHOC_STATEMENT_BODY WHERE PIN = @pin ORDER BY SN, CONTDATE, TRANS_DATE, DESCR DESC`);
+            .query(`SELECT * FROM PFA.dbo.ADHOC_STATEMENT_BODY WHERE PIN = @pin ORDER BY SN, CONTDATE, TRANS_DATE, DESCR DESC`);
 
         const dbBody = bodyResult.recordset;
 

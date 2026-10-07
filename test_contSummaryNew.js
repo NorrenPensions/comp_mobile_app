@@ -100,7 +100,7 @@ async function testContSummaryNew(pin) {
 
 // Support direct CLI execution: node test_contSummaryNew.js <PIN>
 if (require.main === module) {
-    const testPin = process.argv[2] || "PEN100000000001";
+    const testPin = process.argv[2] || "PEN100139432511";
 
     if (!process.argv[2]) {
         console.log("ℹ️  No PIN provided in arguments. Defaulting to sample PIN:", testPin);
