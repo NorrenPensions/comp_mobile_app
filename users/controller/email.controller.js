@@ -283,7 +283,7 @@ const sendStatement = async (req, res) => {
             to: sendToEmail,
             subject: "E-Statement",
             html: `<b>Dear ${fname},</b><br>
-               <p>Thank you for choosing Norrenberger Pensions Managers LTD.</p>
+               <p>Thank you for choosing Norrenberger Pensions Limited.</p>
                <p>Kindly find attached e-statement.</p>`,
             attachments: [{ filename: `${pin}_statement.pdf`, path: pdfPath }]
         };
