@@ -42,26 +42,31 @@ const contSummaryNew = async (req, res) => {
 
         console.log("Database query results - rsaPin:", targetPin, "employeeContr:", employeeContr, "employerContr:", employerContr);
 
-        const result = await pool.request().input('pin', targetPin).query(`
+        const fcyFundId = 87;
+        const pppFundId = 79;
+
+        // Keep Fund 87 on its existing valuation path.
+        const legacyValuation = await pool.request().input('pin', targetPin).query(`
             EXEC PFA.dbo.sp_GetCurrentValueOfFunds @pin = @pin
-            `);
+        `);
+        const legacyFcy = (legacyValuation.recordsets?.[0] || []).find(
+            fund => Number(fund.Fund_id ?? fund.fund_id) === fcyFundId
+        );
+        const fcyBalance = legacyFcy?.Balance ?? legacyFcy?.balance ?? 0;
+        const fcyGrowth = legacyFcy?.['Gain/Loss'] ?? legacyFcy?.['gain/loss'] ?? 0;
 
-        const records = result.recordsets[0] || [];
-        console.log("Records: ", records);
+        const valuation = await pool.request()
+            .input('Pin', sql.VarChar(50), targetPin)
+            .execute('[PFA].[dbo].[usp_PFA_GetFundBalanceAndGain]');
 
-        const mandatoryRes = await pool.request().input('pin', targetPin).query(`
-            EXEC PFA.dbo.sp_GetCurrentValueOfMandatory @pin = @pin
-            `);
-
-        const mandatoryRecord = mandatoryRes.recordset?.[0] || mandatoryRes.recordsets?.[0]?.[0];
-        const mandatoryGainLoss = mandatoryRecord ? (mandatoryRecord['Gain/Loss'] ?? mandatoryRecord['gain/loss'] ?? mandatoryRecord['GAIN/LOSS']) : null;
-
-        const pppRes = await pool.request().input('pin', targetPin).query(`
-            EXEC PFA.dbo.sp_GetCurrentValueOfPPP @pin = @pin
-            `);
-
-        const pppRecord = pppRes.recordset?.[0] || pppRes.recordsets?.[0]?.[0];
-        const pppGainLoss = pppRecord ? (pppRecord['Gain/Loss'] ?? pppRecord['gain/loss'] ?? pppRecord['GAIN/LOSS']) : null;
+        const ngnFunds = valuation.recordset.filter(fund => Number(fund.FundId) !== fcyFundId);
+        if (ngnFunds.some(fund => fund.CalculationStatus !== 'OK'
+            || fund.CurrencyCode?.trim().toUpperCase() !== 'NGN'
+            || !Number.isFinite(fund.Balance) || !Number.isFinite(fund.GainOrLoss))) {
+            return res.status(422).json({
+                error: 'A fund balance requires review before this summary can be generated.'
+            });
+        }
 
         const fundCodeMap = {
             73: "FUND1",
@@ -78,34 +83,17 @@ const contSummaryNew = async (req, res) => {
             return isNaN(num) ? 0 : Number(num.toFixed(2));
         };
 
-        const fcyFundId = 87;
-        const totalAllBalance = records
-            .filter(item => item.fund_id !== fcyFundId)
-            .reduce((sum, item) => sum + (Number(item.balance) || 0), 0);
+        const pppFund = ngnFunds.find(fund => Number(fund.FundId) === pppFundId);
+        const balanceVoluntary = pppFund?.Balance ?? 0;
+        const growthVoluntary = pppFund?.GainOrLoss ?? 0;
+        const mandatoryFunds = ngnFunds.filter(fund => Number(fund.FundId) !== pppFundId);
+        const balanceMandatory = mandatoryFunds.reduce((sum, fund) => sum + fund.Balance, 0);
+        const growthMandatory = mandatoryFunds.reduce((sum, fund) => sum + fund.GainOrLoss, 0);
 
-        console.log("All records: ", records);
-
-        const fund79Record = records.find(item => item.fund_id === 79);
-        const balanceVoluntary = fund79Record ? (fund79Record.balance || 0) : 0;
-
-        const growthVoluntary = fund79Record
-            ? (fund79Record['gain/loss'] !== undefined ? fund79Record['gain/loss'] : (fund79Record['Gain/Loss'] !== undefined ? fund79Record['Gain/Loss'] : 0))
-            : 0;
-
-        const growthMandatory = records
-            .filter(item => item.fund_id !== 79)
-            .reduce((sum, item) => {
-                const gainLoss = item['gain/loss'] !== undefined ? item['gain/loss'] : (item['Gain/Loss'] !== undefined ? item['Gain/Loss'] : 0);
-                return sum + (Number(gainLoss) || 0);
-            }, 0);
-        // Placeholder declarations to prevent ReferenceError
-        let totalContributionVoluntary = 0;
-        let netContributionMandatory = 0;
-        let totalUnitMandatory = 0;
-        let totalUnitVoluntary = 0;
-        let balanceMandatory = 0;
-
-        let totalBalance = 0;
+        // Preserve the existing fields for contribution and unit totals.
+        const netContributionMandatory = 0;
+        const totalUnitMandatory = 0;
+        const totalUnitVoluntary = 0;
 
         const fundIdResult = await pool.request()
             .input('pin', targetPin)
@@ -115,45 +103,18 @@ const contSummaryNew = async (req, res) => {
         const primaryFundId = fundIdResult.recordset && fundIdResult.recordset[0] ? fundIdResult.recordset[0].fund_id : null;
         console.log("fundId: ", primaryFundId);
 
-        const fcyExists = records.some((item) => item.fund_id === fcyFundId);
-
-        if (!fcyExists) {
-            records.push({
-                fund_id: fcyFundId,
-                balance: 0,
-                "Gain/Loss": 0
-            });
-        }
-
-        const fcyRecord = records.find(item => item.fund_id === fcyFundId);
-        const fcyBalance = fcyRecord ? (Number(fcyRecord.balance) || 0) : 0;
-
-        const allowedFundIds = [
-            Number(primaryFundId),
-            79,
-            87,
-        ];
-
-        const threeRecords = records.filter((item) => {
-            const fundId = Number(item.Fund_id ?? item.fund_id);
-            return allowedFundIds.includes(fundId);
+        const visibleFunds = ngnFunds.filter(fund => {
+            const fundId = Number(fund.FundId);
+            return fundId === Number(primaryFundId) || fundId === pppFundId;
         });
+        visibleFunds.push({ FundId: fcyFundId, Balance: fcyBalance, GainOrLoss: fcyGrowth });
 
-        console.log("Filtered records for allowed fund IDs: ", threeRecords);
-
-        const mappedFunds = threeRecords.map(item => {
-            const fId = item.Fund_id !== undefined ? item.Fund_id : item.fund_id;
-            const bal = item.Balance !== undefined ? item.Balance : (item.balance !== undefined ? item.balance : 0);
-            const gainLoss = item['Gain/Loss'] !== undefined ? item['Gain/Loss'] : (item['gain/loss'] !== undefined ? item['gain/loss'] : 0);
-            return {
-                FUND_ID: fId,
-                FUND_CODE: fundCodeMap[fId] || `FUND ${fId}`,
-                BALANCE: formatDecimal(bal),
-                GROWTH: formatDecimal(gainLoss)
-            };
-        });
-
-        console.log("MappedFunds: ", mappedFunds);
+        const mappedFunds = visibleFunds.map(fund => ({
+            FUND_ID: Number(fund.FundId),
+            FUND_CODE: fundCodeMap[fund.FundId] || `FUND ${fund.FundId}`,
+            BALANCE: formatDecimal(fund.Balance),
+            GROWTH: formatDecimal(fund.GainOrLoss)
+        }));
 
         const payload =
         {
@@ -171,8 +132,8 @@ const contSummaryNew = async (req, res) => {
             VOLUNTARY_BALANCE: formatDecimal(balanceVoluntary),
             VOLUNTARY_GROWTH: formatDecimal(growthVoluntary),
             TOTAL_UNITS: formatDecimal(Number(totalUnitMandatory || 0) + Number(totalUnitVoluntary || 0)),
-            TOTAL_BALANCE: formatDecimal(totalAllBalance),
-            TOTAL_GROWTH: formatDecimal(Number(mandatoryGainLoss || 0) + Number(pppGainLoss || 0)),
+            TOTAL_BALANCE: formatDecimal(balanceMandatory + balanceVoluntary),
+            TOTAL_GROWTH: formatDecimal(growthMandatory + growthVoluntary),
             FCY_BALANCE: formatDecimal(fcyBalance),
             FUNDS: mappedFunds
         }
