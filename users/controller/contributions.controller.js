@@ -60,8 +60,7 @@ const contSummaryNew = async (req, res) => {
             .execute('[PFA].[dbo].[usp_PFA_GetFundBalanceAndGain]');
 
         const ngnFunds = valuation.recordset.filter(fund => Number(fund.FundId) !== fcyFundId);
-        if (ngnFunds.some(fund => fund.CalculationStatus !== 'OK'
-            || fund.CurrencyCode?.trim().toUpperCase() !== 'NGN'
+        if (ngnFunds.some(fund => fund.CurrencyCode?.trim().toUpperCase() !== 'NGN'
             || !Number.isFinite(fund.Balance) || !Number.isFinite(fund.GainOrLoss))) {
             return res.status(422).json({
                 error: 'A fund balance requires review before this summary can be generated.'
